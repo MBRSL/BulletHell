@@ -1,0 +1,9 @@
+[core]
+	editor = \"C:\\Users\\MBRSL\\AppData\\Local\\Programs\\Microsoft VS Code\\bin\\code\" --wait
+	ignorecase = true
+	fsmonitor = true
+[user]
+	name = MBRSL
+	mail = mbrsl.jp@gmail.com
+[feature]
+	manyFiles = true
