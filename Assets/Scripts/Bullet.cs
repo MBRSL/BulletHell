@@ -3,20 +3,25 @@ using UnityEngine;
 
 public class Bullet : MonoBehaviour
 {
-    public event Action<Bullet> OnExitingSpace;
+    public delegate void HitEvent(Bullet self, Collider other);
+    public event HitEvent OnHit;
+    public event HitEvent OnLeave;
 
-    private Collider _activeSpace;
-
-    public void Init(Collider activeSpace)
+    #region Unity functions
+    private void OnTriggerEnter(Collider other)
     {
-        _activeSpace = activeSpace;
-    } 
+        if (OnHit != null)
+        {
+            OnHit(this, other);
+        }
+    }
 
     private void OnTriggerExit(Collider other)
     {
-        if (other == _activeSpace)
+        if (OnLeave != null)
         {
-            OnExitingSpace(this);
+            OnLeave(this, other);
         }
     }
+    #endregion
 }

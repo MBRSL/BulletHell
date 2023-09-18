@@ -2,18 +2,24 @@ using UnityEngine;
 
 public class Main : MonoBehaviour
 {
+    #region Editor data
     [SerializeField] private GameObject _player;
     [SerializeField] private GameObject _bulletPrefab;
     [SerializeField] private GameObjectPool _bulletGameObjectPool;
     [SerializeField] private SphereCollider _bulletActiveSpace;
     [SerializeField] private float bulletSpeed;
-
+    [SerializeField] private float movingSpeed;
+    #endregion
+    
     private int _counter;
+    private Collider _playerCollider;
 
+    #region Unity functions
     void Start()
     {
         Application.targetFrameRate = 60;
         _counter = 0;
+        _playerCollider = _player.GetComponent<Collider>();
         _bulletGameObjectPool.Initiate(_bulletPrefab, 10);
     }
 
@@ -28,12 +34,13 @@ public class Main : MonoBehaviour
             _counter = 0;
         }
     }
+    #endregion
 
     private void _PlayerControl()
     {
-        var horizontalInput = Input.GetAxis("Horizontal");
-        var verticalInput = Input.GetAxis("Vertical");
-        _player.transform.position += new Vector3(horizontalInput, verticalInput, 0) * Time.deltaTime;
+        var horizontalInput = Input.GetAxisRaw("Horizontal");
+        var verticalInput = Input.GetAxisRaw("Vertical");
+        _player.transform.position += new Vector3(horizontalInput, verticalInput, 0) * Time.deltaTime * movingSpeed;
     }
 
     private Vector3 _SampleOnCircle(SphereCollider collider)
@@ -55,13 +62,25 @@ public class Main : MonoBehaviour
         bulletRigidbody.velocity = -(targetPosition-_bulletActiveSpace.transform.position).normalized * bulletSpeed;
 
         var bullet = bulletGO.GetComponent<Bullet>();
-        bullet.Init(_bulletActiveSpace);
-        bullet.OnExitingSpace += _DestroyBullet;
+        bullet.OnHit += _CheckPlayerHit;
+        bullet.OnLeave += _RecycleBullet;
     }
 
-    private void _DestroyBullet(Bullet bullet)
+    private void _CheckPlayerHit(Bullet bullet, Collider collider)
     {
-        bullet.OnExitingSpace -= _DestroyBullet;
-        _bulletGameObjectPool.ReturnObjectToPool(bullet.gameObject);
+        if (collider == _playerCollider)
+        {
+            Debug.Log("Hit");
+        }
+    }
+
+    private void _RecycleBullet(Bullet bullet, Collider collider)
+    {
+        if (collider == _bulletActiveSpace)
+        {
+            bullet.OnHit -= _CheckPlayerHit;
+            bullet.OnLeave -= _RecycleBullet;
+            _bulletGameObjectPool.ReturnObjectToPool(bullet.gameObject);
+        }
     }
 }
