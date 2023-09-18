@@ -6,6 +6,7 @@ public class GameManager
     #region Private properties
     private GameView _gameView;
     
+    private bool _isGameOver;
     private int _frameCounter;
     private int _playerLifes;
     private List<Collidable> _bullets;
@@ -21,12 +22,18 @@ public class GameManager
         _gameView.OnBulletOutOfBounds += _RemoveBullet;
         _gameView.OnExtendHit += _AddPlayerLifes;
         _gameView.OnExtendOutOfBounds += _RemoveExtend;
+        _gameView.OnClickRetry += _Initialize;
 
         _Initialize();
     }
 
     public void Update()
     {
+        if (_isGameOver)
+        {
+            return;
+        }
+        
         _PlayerControl();
         
         _frameCounter++;
@@ -48,12 +55,13 @@ public class GameManager
     #region Private methods
     private void _Initialize()
     {
-        _gameView.Initialize();
-
+        _isGameOver = false;
         _frameCounter = 0;
         _playerLifes = 1;
         _bullets = new List<Collidable>();
         _extends = new List<Collidable>();
+
+        _gameView.Initialize(_playerLifes);
     }
 
     private void _PlayerControl()
@@ -63,11 +71,20 @@ public class GameManager
         _gameView.PlayerPosition += new Vector3(horizontalInput, verticalInput, 0) * Time.deltaTime * 10;
     }
 
+    private void _GameOver()
+    {
+        _isGameOver = true;
+        _gameView.ShowGameOver();
+    }
+
     private void _CheckPlayerLifes(Collidable bullet)
     {
         _playerLifes--;
-        if (_playerLifes == 0)
+        _gameView.SetPlayerLifes(_playerLifes);
+
+        if (_playerLifes <= 0)
         {
+            _GameOver();
             return;
         }
 

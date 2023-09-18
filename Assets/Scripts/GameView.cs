@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 using Random = UnityEngine.Random;
 
 public class GameView : MonoBehaviour
@@ -10,6 +12,7 @@ public class GameView : MonoBehaviour
     public event Action<Collidable> OnExtendHit;
     public event Action<Collidable> OnBulletOutOfBounds;
     public event Action<Collidable> OnExtendOutOfBounds;
+    public event Action OnClickRetry;
     #endregion
 
     #region Editor data
@@ -20,6 +23,9 @@ public class GameView : MonoBehaviour
     [SerializeField] private GameObject _extendPrefab;
     [SerializeField] private GameObjectPool _extendGameObjectPool;
     [SerializeField] private SphereCollider _activeSpace;
+    [SerializeField] private TextMeshProUGUI _playerLifesText;
+    [SerializeField] private GameObject _gameOverUi;
+    [SerializeField] private Button _retryButton;
     [SerializeField] private float _bulletSpeed;
     [SerializeField] private float _extendSpeed;
     [SerializeField] private int _initPoolGameObjectNum;
@@ -34,11 +40,28 @@ public class GameView : MonoBehaviour
         set { _player.transform.position = value; }
     }
 
-    public void Initialize()
+    public void Initialize(int playerLifes)
     {
+        _retryButton.onClick.RemoveAllListeners();
+        _retryButton.onClick.AddListener(_OnclickRetry);
+        _gameOverUi.SetActive(false);
+
+        _player.transform.position = Vector3.zero;
         _playerCollider = _player.GetComponent<Collider>();
         _bulletGameObjectPool.Initialize(_bulletPrefab, _initPoolGameObjectNum);
         _extendGameObjectPool.Initialize(_extendPrefab, _initPoolGameObjectNum);
+
+        SetPlayerLifes(playerLifes);
+    }
+
+    public void ShowGameOver()
+    {
+        _gameOverUi.SetActive(true);
+    }
+
+    public void SetPlayerLifes(int playerLifes)
+    {
+        _playerLifesText.text = "Stock: " + playerLifes;
     }
 
     public Collidable SpawnBullet()
@@ -100,7 +123,7 @@ public class GameView : MonoBehaviour
         if (collider == _playerCollider)
         {
             Debug.Log("Bullet Hit");
-            OnExtendHit?.Invoke(bullet);
+            OnBulletHit?.Invoke(bullet);
         }
     }
 
@@ -127,6 +150,11 @@ public class GameView : MonoBehaviour
         {
             OnExtendOutOfBounds?.Invoke(extend);
         }
+    }
+
+    private void _OnclickRetry()
+    {
+        OnClickRetry?.Invoke();
     }
     #endregion
 }
