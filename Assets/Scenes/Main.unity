@@ -425,6 +425,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1105061693}
   - component: {fileID: 1105061692}
+  - component: {fileID: 1105061694}
   m_Layer: 0
   m_Name: Main
   m_TagString: Untagged
@@ -444,15 +445,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bb5b6b43e0bb99b469f016787ac3eb6a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _player: {fileID: 494609744}
-  _bulletPrefab: {fileID: 7051450914155141499, guid: 704aff6569c84d243ad3e0fd698e1714, type: 3}
-  _bulletGameObjectPool: {fileID: 1096838733}
-  _extendPrefab: {fileID: 7051450914155141499, guid: 1c00dfbc16cbaa4439233b799f030dae, type: 3}
-  _extendGameObjectPool: {fileID: 1383619724}
-  _activeSpace: {fileID: 2045715644}
-  bulletSpeed: 50
-  itemSpeed: 0
-  playerMovingSpeed: 0
+  _gameView: {fileID: 1105061694}
 --- !u!4 &1105061693
 Transform:
   m_ObjectHideFlags: 0
@@ -468,6 +461,27 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1105061694
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1105061691}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f6ba635aaa761bc4891f53d6436f69b4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _player: {fileID: 494609744}
+  _bulletPrefab: {fileID: 7051450914155141499, guid: 704aff6569c84d243ad3e0fd698e1714, type: 3}
+  _bulletGameObjectPool: {fileID: 1096838733}
+  _extendPrefab: {fileID: 7051450914155141499, guid: 1c00dfbc16cbaa4439233b799f030dae, type: 3}
+  _extendGameObjectPool: {fileID: 1383619724}
+  _activeSpace: {fileID: 2045715644}
+  _bulletSpeed: 10
+  _extendSpeed: 10
+  _initPoolGameObjectNum: 10
 --- !u!1 &1383619723
 GameObject:
   m_ObjectHideFlags: 0
