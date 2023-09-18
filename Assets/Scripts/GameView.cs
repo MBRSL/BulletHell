@@ -37,8 +37,8 @@ public class GameView : MonoBehaviour
     public void Initialize()
     {
         _playerCollider = _player.GetComponent<Collider>();
-        _bulletGameObjectPool.Initiate(_bulletPrefab, _initPoolGameObjectNum);
-        _extendGameObjectPool.Initiate(_extendPrefab, _initPoolGameObjectNum);
+        _bulletGameObjectPool.Initialize(_bulletPrefab, _initPoolGameObjectNum);
+        _extendGameObjectPool.Initialize(_extendPrefab, _initPoolGameObjectNum);
     }
 
     public Collidable SpawnBullet()

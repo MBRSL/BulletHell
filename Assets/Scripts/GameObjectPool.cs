@@ -3,18 +3,21 @@ using System.Collections.Generic;
 
 public class GameObjectPool : MonoBehaviour
 {
+    #region Private properties
     private GameObject _templatePrefab;
     private List<GameObject> _objectPool;
+    #endregion
 
-    public void Initiate(GameObject templatePrefab, int initSize)
+    #region Public functions
+    public void Initialize(GameObject templatePrefab, int initSize)
     {
         _templatePrefab = templatePrefab;
         _objectPool = new List<GameObject>();
 
         for (int i = 0; i < initSize; i++)
         {
-            GetObjectFromPool();
-        }
+            _Initiate();
+        }        
     }
 
     public GameObject GetObjectFromPool()
@@ -27,10 +30,7 @@ public class GameObjectPool : MonoBehaviour
             }
         }
 
-        GameObject newObj = Instantiate(_templatePrefab, transform);
-        newObj.SetActive(false);
-        _objectPool.Add(newObj);
-        return newObj;
+        return _Initiate();
     }
 
     public void ReturnObjectToPool(GameObject obj)
@@ -40,4 +40,15 @@ public class GameObjectPool : MonoBehaviour
             obj.SetActive(false);
         }
     }
+    #endregion
+
+    #region Private functions
+    private GameObject _Initiate()
+    {
+        GameObject newObj = Instantiate(_templatePrefab, transform);
+        newObj.SetActive(false);
+        _objectPool.Add(newObj);
+        return newObj;
+    }
+    #endregion
 }
