@@ -1,9 +1,8 @@
-using System;
 using UnityEngine;
 
-public class Bullet : MonoBehaviour
+public class Collidable : MonoBehaviour
 {
-    public delegate void HitEvent(Bullet self, Collider other);
+    public delegate void HitEvent(Collidable self, Collider other);
     public event HitEvent OnHit;
     public event HitEvent OnLeave;
 
