@@ -5,6 +5,7 @@ public class GameManager
 {
     #region Private properties
     private GameView _gameView;
+    private AiPlayer _aiPlayer;
     
     private bool _isGameOver;
     private int _frameCounter;
@@ -22,6 +23,7 @@ public class GameManager
         _gameView.OnBulletOutOfBounds += _RemoveBullet;
         _gameView.OnExtendHit += _AddPlayerLifes;
         _gameView.OnExtendOutOfBounds += _RemoveExtend;
+        _gameView.OnPlayerOutOfBounds += _GameOver;
         _gameView.OnClickRetry += _Initialize;
 
         _Initialize();
@@ -35,6 +37,7 @@ public class GameManager
         }
         
         _PlayerControl();
+        _AiControl();
         
         _frameCounter++;
         if (_frameCounter % 10 == 0)
@@ -62,13 +65,27 @@ public class GameManager
         _extends = new List<Collidable>();
 
         _gameView.Initialize(_playerLifes);
+            _aiPlayer = new AiPlayer(
+            Vector2.zero,
+            _gameView.PlayerTransform,
+            _gameView.PlayerBounds,
+            _bullets,
+            _extends
+        );
+
     }
 
     private void _PlayerControl()
     {
         var horizontalInput = Input.GetAxisRaw("Horizontal");
         var verticalInput = Input.GetAxisRaw("Vertical");
-        _gameView.PlayerPosition += new Vector3(horizontalInput, verticalInput, 0) * Time.deltaTime * 10;
+        _gameView.PlayerTransform.position += new Vector3(horizontalInput, verticalInput, 0).normalized * Time.deltaTime * 10;
+    }
+
+    private void _AiControl()
+    {
+        var offset = _aiPlayer.GetAction().normalized;
+        _gameView.PlayerTransform.position += offset * Time.deltaTime * 10;
     }
 
     private void _GameOver()
