@@ -36,9 +36,6 @@ public class GameManager
             return;
         }
         
-        _PlayerControl();
-        _AiControl();
-        
         _frameCounter++;
         if (_frameCounter % 10 == 0)
         {
@@ -49,9 +46,12 @@ public class GameManager
         {
             var extend = _gameView.SpawnExtends();
             _extends.Add(extend);
-
-            _frameCounter = 0;
         }
+
+        var score = _CalculateScore(_frameCounter);
+        _gameView.UpdateInfo(_frameCounter, score, _playerLifes);
+        _PlayerControl();
+        _AiControl();       
     }
     #endregion
 
@@ -73,6 +73,11 @@ public class GameManager
             _extends
         );
 
+    }
+
+    private int _CalculateScore(int frameCount)
+    {
+        return (int)Mathf.Pow(frameCount, 1.05f);
     }
 
     private void _PlayerControl()

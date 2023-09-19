@@ -26,6 +26,8 @@ public class GameView : MonoBehaviour
     [SerializeField] private SphereCollider _collidableSpace;
     [SerializeField] private BoxCollider _playerSpace;
     [SerializeField] private TextMeshProUGUI _playerLifesText;
+    [SerializeField] private TextMeshProUGUI _frameCountText;
+    [SerializeField] private TextMeshProUGUI _scoreText;
     [SerializeField] private GameObject _gameOverUi;
     [SerializeField] private Button _retryButton;
     [SerializeField] private float _bulletSpeed;
@@ -69,7 +71,14 @@ public class GameView : MonoBehaviour
 
     public void SetPlayerLifes(int playerLifes)
     {
-        _playerLifesText.text = "Stock: " + playerLifes;
+        _playerLifesText.text = $"Stock: {playerLifes}";
+    }
+
+    public void UpdateInfo(int frameCount, int score, int playerLifes)
+    {
+        _frameCountText.text = $"Frame: {frameCount}";
+        _scoreText.text = $"Score: {score}";
+        _playerLifesText.text = $"Lifes: {playerLifes}";
     }
 
     public Collidable SpawnBullet()
@@ -155,7 +164,6 @@ public class GameView : MonoBehaviour
     {
         if (collider == _playerCollider)
         {
-            Debug.Log("Extend Hit");
             OnExtendHit?.Invoke(extend);
         }
     }
