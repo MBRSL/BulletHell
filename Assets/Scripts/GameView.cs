@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Playables;
@@ -19,7 +18,8 @@ public class GameView : MonoBehaviour
     #endregion
 
     #region Editor data
-    [SerializeField] private PlayableDirector _director;
+    [SerializeField] private PlayableDirector _introDirector;
+    [SerializeField] private PlayableDirector _hitFxDirector;
     [SerializeField] private Collidable _player;
     [SerializeField] private GameObject _bulletPrefab;
     [SerializeField] private GameObjectPool _bulletGameObjectPool;
@@ -28,6 +28,7 @@ public class GameView : MonoBehaviour
     [SerializeField] private GameObjectPool _extendGameObjectPool;
     [SerializeField] private SphereCollider _collidableSpace;
     [SerializeField] private BoxCollider _playerSpace;
+    [SerializeField] private ParticleSystem _explosionFx;
     [SerializeField] private TextMeshProUGUI _playerLifesText;
     [SerializeField] private TextMeshProUGUI _frameCountText;
     [SerializeField] private TextMeshProUGUI _scoreText;
@@ -53,11 +54,12 @@ public class GameView : MonoBehaviour
 
     public void Initialize(int playerLifes)
     {
-        _director.Play();
+        _introDirector.Play();
         _retryButton.onClick.RemoveAllListeners();
         _retryButton.onClick.AddListener(_OnclickRetry);
         _gameOverUi.SetActive(false);
 
+        _player.gameObject.SetActive(true);
         _player.transform.position = Vector3.zero;
         _player.OnLeave -= _ChechPlayerInBounds;
         _player.OnLeave += _ChechPlayerInBounds;
@@ -75,6 +77,9 @@ public class GameView : MonoBehaviour
 
     public void ShowGameOver()
     {
+        _explosionFx.transform.position = _player.transform.position;
+        _explosionFx.Play();
+        _player.gameObject.SetActive(false);
         _gameOverUi.SetActive(true);
     }
 
@@ -160,6 +165,7 @@ public class GameView : MonoBehaviour
     {
         if (collider == _playerCollider)
         {
+            _hitFxDirector.Play();
             OnBulletHit?.Invoke(bullet);
         }
     }
