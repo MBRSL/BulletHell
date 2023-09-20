@@ -7,6 +7,7 @@ public class GameManager
     private GameView _gameView;
     private AiPlayer _aiPlayer;
     
+    private bool _isIntroAnimationEnd;
     private bool _isGameOver;
     private int _frameCounter;
     private int _playerLifes;
@@ -25,13 +26,14 @@ public class GameManager
         _gameView.OnExtendOutOfBounds += _RemoveExtend;
         _gameView.OnPlayerOutOfBounds += _GameOver;
         _gameView.OnClickRetry += _Initialize;
+        _gameView.OnIntroAnimationEnd += _IntroAnimationEnded;
 
         _Initialize();
     }
 
     public void Update()
     {
-        if (_isGameOver)
+        if (!_isIntroAnimationEnd || _isGameOver)
         {
             return;
         }
@@ -58,6 +60,7 @@ public class GameManager
     #region Private methods
     private void _Initialize()
     {
+        _isIntroAnimationEnd = false;
         _isGameOver = false;
         _frameCounter = 0;
         _playerLifes = 1;
@@ -72,7 +75,11 @@ public class GameManager
             _bullets,
             _extends
         );
+    }
 
+    private void _IntroAnimationEnded()
+    {
+        _isIntroAnimationEnd = true;
     }
 
     private int _CalculateScore(int frameCount)

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Playables;
 using UnityEngine.UI;
 using Random = UnityEngine.Random;
 
@@ -14,9 +15,11 @@ public class GameView : MonoBehaviour
     public event Action<Collidable> OnExtendOutOfBounds;
     public event Action OnPlayerOutOfBounds;
     public event Action OnClickRetry;
+    public event Action OnIntroAnimationEnd;
     #endregion
 
     #region Editor data
+    [SerializeField] private PlayableDirector _director;
     [SerializeField] private Collidable _player;
     [SerializeField] private GameObject _bulletPrefab;
     [SerializeField] private GameObjectPool _bulletGameObjectPool;
@@ -50,11 +53,12 @@ public class GameView : MonoBehaviour
 
     public void Initialize(int playerLifes)
     {
+        _director.Play();
         _retryButton.onClick.RemoveAllListeners();
         _retryButton.onClick.AddListener(_OnclickRetry);
         _gameOverUi.SetActive(false);
 
-        _player.transform.position = Vector3.zero;
+        //_player.transform.position = Vector3.zero;
         _player.OnLeave -= _ChechPlayerInBounds;
         _player.OnLeave += _ChechPlayerInBounds;
         _playerCollider = _player.GetComponent<Collider>();
@@ -62,6 +66,11 @@ public class GameView : MonoBehaviour
         _extendGameObjectPool.Initialize(_extendPrefab, _initPoolGameObjectNum);
 
         SetPlayerLifes(playerLifes);
+    }
+
+    public void TriggerIntroAnimationEnd()
+    {
+        OnIntroAnimationEnd?.Invoke();
     }
 
     public void ShowGameOver()
