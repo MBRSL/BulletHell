@@ -64,8 +64,24 @@ public class GameManager
         _isGameOver = false;
         _frameCounter = 0;
         _playerLifes = 1;
-        _bullets = new List<Collidable>();
-        _extends = new List<Collidable>();
+        if (_bullets == null)
+        {
+            _bullets = new List<Collidable>();
+        }
+        for (int i = _bullets.Count-1; i >= 0; i--)
+        {
+            _gameView.RecycleBullet(_bullets[i]);
+            _bullets.RemoveAt(i);
+        }
+        if (_extends == null)
+        {
+            _extends = new List<Collidable>();
+        }
+        for (int i = _extends.Count-1; i >= 0; i--)
+        {
+            _gameView.RecycleBullet(_extends[i]);
+            _extends.RemoveAt(i);
+        }
 
         _gameView.Initialize(_playerLifes);
             _aiPlayer = new AiPlayer(

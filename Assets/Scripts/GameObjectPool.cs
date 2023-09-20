@@ -12,12 +12,19 @@ public class GameObjectPool : MonoBehaviour
     public void Initialize(GameObject templatePrefab, int initSize)
     {
         _templatePrefab = templatePrefab;
-        _objectPool = new List<GameObject>();
-
+        if (_objectPool == null)
+        {
+            _objectPool = new List<GameObject>();
+        }
+        for(int i = _objectPool.Count-1; i >= 0; i--)
+        {
+            Destroy(_objectPool[i]);
+            _objectPool.RemoveAt(i);
+        }
         for (int i = 0; i < initSize; i++)
         {
             _Initiate();
-        }        
+        }
     }
 
     public GameObject GetObjectFromPool()

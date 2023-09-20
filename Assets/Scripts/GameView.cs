@@ -58,7 +58,7 @@ public class GameView : MonoBehaviour
         _retryButton.onClick.AddListener(_OnclickRetry);
         _gameOverUi.SetActive(false);
 
-        //_player.transform.position = Vector3.zero;
+        _player.transform.position = Vector3.zero;
         _player.OnLeave -= _ChechPlayerInBounds;
         _player.OnLeave += _ChechPlayerInBounds;
         _playerCollider = _player.GetComponent<Collider>();
@@ -128,11 +128,15 @@ public class GameView : MonoBehaviour
 
     public void RecycleBullet(Collidable bullet)
     {
+        bullet.OnHit -= _BulletHit;
+        bullet.OnLeave -= _BulletLeave;
         _bulletGameObjectPool.ReturnObjectToPool(bullet.gameObject);
     }
 
     public void RecycleExtend(Collidable extend)
     {
+        extend.OnHit -= _ExtendHit;
+        extend.OnLeave -= _ExtendLeave;
         _extendGameObjectPool.ReturnObjectToPool(extend.gameObject);
     }
     #endregion
@@ -156,7 +160,6 @@ public class GameView : MonoBehaviour
     {
         if (collider == _playerCollider)
         {
-            Debug.Log("Bullet Hit");
             OnBulletHit?.Invoke(bullet);
         }
     }
