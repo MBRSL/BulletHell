@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Playables;
@@ -8,10 +9,8 @@ using Random = UnityEngine.Random;
 public class GameView : MonoBehaviour
 {
     #region Public delegates
-    public event Action<Collidable> OnBulletHit;
-    public event Action<Collidable> OnExtendHit;
-    public event Action<Collidable> OnBulletOutOfBounds;
-    public event Action<Collidable> OnExtendOutOfBounds;
+    public event Action<Item> OnItemHit;
+    public event Action<Item> OnItemOutOfBounds;
     public event Action OnPlayerOutOfBounds;
     public event Action OnClickRetry;
     public event Action OnIntroAnimationEnd;
@@ -20,12 +19,16 @@ public class GameView : MonoBehaviour
     #region Editor data
     [SerializeField] private PlayableDirector _introDirector;
     [SerializeField] private PlayableDirector _hitFxDirector;
-    [SerializeField] private Collidable _player;
-    [SerializeField] private GameObject _bulletPrefab;
-    [SerializeField] private GameObjectPool _bulletGameObjectPool;
+    [SerializeField] private ItemView _player;
+    [SerializeField] private GameObject _normalBulletPrefab;
+    [SerializeField] private GameObjectPool _normalBulletGameObjectPool;
+    [SerializeField] private GameObject _fastBulletPrefab;
+    [SerializeField] private GameObjectPool _fastBulletGameObjectPool;
+    [SerializeField] private GameObject _tracingBulletPrefab;
+    [SerializeField] private GameObjectPool _tracingBulletGameObjectPool;
     // For "1-UP"
-    [SerializeField] private GameObject _extendPrefab;
-    [SerializeField] private GameObjectPool _extendGameObjectPool;
+    [SerializeField] private GameObject _oneUpPrefab;
+    [SerializeField] private GameObjectPool _oneUpGameObjectPool;
     [SerializeField] private SphereCollider _collidableSpace;
     [SerializeField] private BoxCollider _playerSpace;
     [SerializeField] private ParticleSystem _explosionFx;
@@ -34,8 +37,7 @@ public class GameView : MonoBehaviour
     [SerializeField] private TextMeshProUGUI _scoreText;
     [SerializeField] private GameObject _gameOverUi;
     [SerializeField] private Button _retryButton;
-    [SerializeField] private float _bulletSpeed;
-    [SerializeField] private float _extendSpeed;
+    [SerializeField] private float _itemSpeed;
     [SerializeField] private int _initPoolGameObjectNum;
     #endregion
 
@@ -48,6 +50,11 @@ public class GameView : MonoBehaviour
     }
 
     public Bounds PlayerBounds
+    {
+        get { return _player.Bounds; }
+    }
+
+    public Bounds BorderBounds
     {
         get { return _playerSpace.bounds; }
     }
@@ -64,8 +71,10 @@ public class GameView : MonoBehaviour
         _player.OnLeave -= _ChechPlayerInBounds;
         _player.OnLeave += _ChechPlayerInBounds;
         _playerCollider = _player.GetComponent<Collider>();
-        _bulletGameObjectPool.Initialize(_bulletPrefab, _initPoolGameObjectNum);
-        _extendGameObjectPool.Initialize(_extendPrefab, _initPoolGameObjectNum);
+        _normalBulletGameObjectPool.Initialize(_normalBulletPrefab, _initPoolGameObjectNum);
+        _fastBulletGameObjectPool.Initialize(_fastBulletPrefab, _initPoolGameObjectNum);
+        _tracingBulletGameObjectPool.Initialize(_tracingBulletPrefab, _initPoolGameObjectNum);
+        _oneUpGameObjectPool.Initialize(_oneUpPrefab, _initPoolGameObjectNum);
 
         SetPlayerLifes(playerLifes);
     }
@@ -95,54 +104,82 @@ public class GameView : MonoBehaviour
         _playerLifesText.text = $"Lifes: {playerLifes}";
     }
 
-    public Collidable SpawnBullet()
+    public void UpdateTracingBullet(List<Item> items)
     {
+        foreach (var item in items)
+        {
+            if (item.Type == Item.Types.TracingBullet)
+            {
+                var rigidBody = item.View.Rigidbody;
+                var originalMagnitude = rigidBody.velocity.magnitude;
+                var toPlayerVec = _player.transform.position - item.View.transform.position;
+                rigidBody.velocity = (rigidBody.velocity + toPlayerVec.normalized * 0.05f).normalized * originalMagnitude;
+            }
+        }
+    }
+
+    public Item SpawnItem(Item.Types type)
+    {
+        GameObject itemGo = null;
+        Vector3 targetPosition = Vector3.zero;
+        float speed = _itemSpeed;
+        if (type == Item.Types.NormalBullet)
+        {
+            itemGo = _normalBulletGameObjectPool.GetObjectFromPool();
+            targetPosition =  _collidableSpace.transform.position + _collidableSpace.radius*0.3f*new Vector3(Random.Range(0f, 1f), Random.Range(0f, 1f), 0);
+        }
+        else if (type == Item.Types.FastBullet)
+        {
+            itemGo = _fastBulletGameObjectPool.GetObjectFromPool();
+            targetPosition =  _collidableSpace.transform.position + _collidableSpace.radius*0.3f*new Vector3(Random.Range(0f, 1f), Random.Range(0f, 1f), 0);
+            speed *= 3;
+        }
+        else if (type == Item.Types.TracingBullet)
+        {
+            itemGo = _tracingBulletGameObjectPool.GetObjectFromPool();
+            targetPosition = _player.transform.position;
+        }
+        else if (type == Item.Types.OneUp)
+        {
+            itemGo = _oneUpGameObjectPool.GetObjectFromPool();
+            targetPosition =  _collidableSpace.transform.position + _collidableSpace.radius*0.3f*new Vector3(Random.Range(0f, 1f), Random.Range(0f, 1f), 0);
+        }
+
         var randomPointOnCircle = _SampleOnCircle(_collidableSpace);
-        var bulletGO = _bulletGameObjectPool.GetObjectFromPool();
-        bulletGO.SetActive(true);
-        bulletGO.transform.position = randomPointOnCircle;
-        bulletGO.transform.transform.rotation = Quaternion.identity;
+        itemGo.SetActive(true);
+        itemGo.transform.position = randomPointOnCircle;
+        itemGo.transform.transform.rotation = Quaternion.identity;
 
-        var bulletRigidbody = bulletGO.GetComponent<Rigidbody>();
-        var targetPosition = randomPointOnCircle + _collidableSpace.radius*0.1f*new Vector3(Random.Range(0f, 1f), Random.Range(0f, 1f), 0);
-        bulletRigidbody.velocity = -(targetPosition-_collidableSpace.transform.position).normalized * _bulletSpeed;
+        var itemView = itemGo.GetComponent<ItemView>();
+        itemView.Initialize();
+        itemView.Rigidbody.velocity = -(randomPointOnCircle-targetPosition).normalized * speed;
 
-        var bullet = bulletGO.GetComponent<Collidable>();
-        bullet.OnHit += _BulletHit;
-        bullet.OnLeave += _BulletLeave;
-        return bullet;
+        var item = new Item(type, itemView);
+        _SetEvents(item);
+        return item;
     }
 
-    public Collidable SpawnExtends()
+
+    public void RecycleItem(Item item)
     {
-        var randomPointOnCircle = _SampleOnCircle(_collidableSpace);
-        var extendGO = _extendGameObjectPool.GetObjectFromPool();
-        extendGO.SetActive(true);
-        extendGO.transform.position = randomPointOnCircle;
-        extendGO.transform.transform.rotation = Quaternion.identity;
-
-        var extendRigidbody = extendGO.GetComponent<Rigidbody>();
-        var targetPosition = randomPointOnCircle + _collidableSpace.radius*0.1f*new Vector3(Random.Range(0f, 1f), Random.Range(0f, 1f), 0);
-        extendRigidbody.velocity = -(targetPosition-_collidableSpace.transform.position).normalized * _extendSpeed;
-
-        var extend = extendGO.GetComponent<Collidable>();
-        extend.OnHit += _ExtendHit;
-        extend.OnLeave += _ExtendLeave;
-        return extend;
-    }
-
-    public void RecycleBullet(Collidable bullet)
-    {
-        bullet.OnHit -= _BulletHit;
-        bullet.OnLeave -= _BulletLeave;
-        _bulletGameObjectPool.ReturnObjectToPool(bullet.gameObject);
-    }
-
-    public void RecycleExtend(Collidable extend)
-    {
-        extend.OnHit -= _ExtendHit;
-        extend.OnLeave -= _ExtendLeave;
-        _extendGameObjectPool.ReturnObjectToPool(extend.gameObject);
+        GameObjectPool pool = null;
+        if (item.Type == Item.Types.NormalBullet)
+        {
+            pool = _normalBulletGameObjectPool;
+        }
+        else if (item.Type == Item.Types.FastBullet)
+        {
+            pool = _fastBulletGameObjectPool;
+        }
+        else if (item.Type == Item.Types.TracingBullet)
+        {
+            pool = _tracingBulletGameObjectPool;
+        }
+        else if (item.Type == Item.Types.OneUp)
+        {
+            pool = _oneUpGameObjectPool;
+        }
+        pool?.ReturnObjectToPool(item.View.gameObject);
     }
     #endregion
 
@@ -153,44 +190,40 @@ public class GameView : MonoBehaviour
         return collider.center + collider.radius * new Vector3(Mathf.Cos(theta), Mathf.Sin(theta), 0);
     }
 
-    private void _ChechPlayerInBounds(Collidable player, Collider collider)
+    private void _SetEvents(Item item)
+    {
+        ItemView.HitEvent onHit = null, onLeave = null;
+        onHit = (_item, _other) => 
+        {
+            if (_other == _playerCollider)
+            {
+                _item.OnHit -= onHit;
+                _item.OnLeave -= onLeave;
+                if (item.Type != Item.Types.OneUp)
+                {
+                    _hitFxDirector.Play();
+                }
+                OnItemHit?.Invoke(item);
+            }
+        };
+        onLeave = (_item, _other) => 
+        {
+            if (_other == _collidableSpace)
+            {
+                _item.OnHit -= onHit;
+                _item.OnLeave -= onLeave;
+                OnItemOutOfBounds?.Invoke(item);
+            }
+        };
+        item.View.OnHit += onHit;
+        item.View.OnLeave += onLeave;
+    }
+
+    private void _ChechPlayerInBounds(ItemView player, Collider collider)
     {
         if (collider == _playerSpace)
         {
             OnPlayerOutOfBounds?.Invoke();
-        }
-    }
-
-    private void _BulletHit(Collidable bullet, Collider collider)
-    {
-        if (collider == _playerCollider)
-        {
-            _hitFxDirector.Play();
-            OnBulletHit?.Invoke(bullet);
-        }
-    }
-
-    private void _BulletLeave(Collidable bullet, Collider collider)
-    {
-        if (collider == _collidableSpace)
-        {
-            OnBulletOutOfBounds?.Invoke(bullet);
-        }
-    }
-
-    private void _ExtendHit(Collidable extend, Collider collider)
-    {
-        if (collider == _playerCollider)
-        {
-            OnExtendHit?.Invoke(extend);
-        }
-    }
-
-    private void _ExtendLeave(Collidable extend, Collider collider)
-    {
-        if (collider == _collidableSpace)
-        {
-            OnExtendOutOfBounds?.Invoke(extend);
         }
     }
 

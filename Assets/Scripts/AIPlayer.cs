@@ -5,7 +5,7 @@ public class AiPlayer
 {
     #region Public properties
     public const float BORDER_REBEL_THRESHOLD = 0.2f;
-    public const float CLOSE_QUATER_DODGE_THRESHOLD = 0.1f;
+    public const float CLOSE_QUATER_DODGE_THRESHOLD = 0.2f;
     #endregion
 
     private class Decision
@@ -18,8 +18,8 @@ public class AiPlayer
     private Vector3 _centerPosition;
     private Transform _playerTransform;
     private Bounds _playerBounds;
-    private List<Collidable> _bullets;
-    private List<Collidable> _extends;
+    private Bounds _borderBounds;
+    private List<Item> _items;
 
     private Vector2 _borderRebelThreshold;
     private float _closeQuaterDodgeThreshold;
@@ -30,20 +30,20 @@ public class AiPlayer
         Vector3 centerPosition,
         Transform playerTransform,
         Bounds playerBounds,
-        List<Collidable> bullets,
-        List<Collidable> extends)
+        Bounds borderBounds,
+        List<Item> items)
     {
         _centerPosition = centerPosition;
         _playerTransform = playerTransform;
         _playerBounds = playerBounds;
-        _bullets = bullets;
-        _extends = extends;
+        _borderBounds = borderBounds;
+        _items = items;
 
         _borderRebelThreshold = new Vector2(
-            _playerBounds.max.x * BORDER_REBEL_THRESHOLD,
-            _playerBounds.max.y * BORDER_REBEL_THRESHOLD
+            _borderBounds.max.x * BORDER_REBEL_THRESHOLD,
+            _borderBounds.max.y * BORDER_REBEL_THRESHOLD
         );
-        _closeQuaterDodgeThreshold = _playerBounds.max.magnitude * CLOSE_QUATER_DODGE_THRESHOLD;
+        _closeQuaterDodgeThreshold = _borderBounds.max.magnitude * CLOSE_QUATER_DODGE_THRESHOLD;
     }
 
     public Vector3 GetAction()
@@ -78,20 +78,23 @@ public class AiPlayer
     {
         var minDistance = -1f;
         var closestDirection = Vector3.zero;
-        foreach (var extend in _extends)
+        foreach (var item in _items)
         {
-            var direction = extend.transform.position - _playerTransform.position;
-            var distance = direction.magnitude;
-            if (minDistance < 0 || distance < minDistance)
+            if (item.Type == Item.Types.OneUp)
             {
-                minDistance = distance;
-                closestDirection = direction;
+                var direction = item.View.transform.position - _playerTransform.position;
+                var distance = direction.magnitude;
+                if (minDistance < 0 || distance < minDistance)
+                {
+                    minDistance = distance;
+                    closestDirection = direction;
+                }
             }
         }
         return new Decision
         {
             direction = closestDirection,
-            confidence = minDistance < 0 ? 0 : 0.5f
+            confidence = minDistance < 0 ? 0 : 0.2f
         };
     }
 
@@ -100,16 +103,16 @@ public class AiPlayer
         return new Decision
         {
             direction = _centerPosition-_playerTransform.position,
-            confidence = (_centerPosition-_playerTransform.position).magnitude/_playerBounds.max.magnitude * 0.5f
+            confidence = (_centerPosition-_playerTransform.position).magnitude/_borderBounds.max.magnitude * 0.5f
         };
     }
 
     private Decision _BorderRebel()
     {
-        var upDistance    = _playerBounds.max.y - _playerTransform.position.y;
-        var rightDistance = _playerBounds.max.x - _playerTransform.position.x;
-        var downDistance  = _playerTransform.position.y - _playerBounds.min.y;
-        var leftDistance  = _playerTransform.position.x - _playerBounds.min.x;
+        var upDistance    = _borderBounds.max.y - _playerTransform.position.y;
+        var rightDistance = _borderBounds.max.x - _playerTransform.position.x;
+        var downDistance  = _playerTransform.position.y - _borderBounds.min.y;
+        var leftDistance  = _playerTransform.position.x - _borderBounds.min.x;
         if (upDistance < _borderRebelThreshold.y)
         {
             return new Decision
@@ -151,33 +154,50 @@ public class AiPlayer
     private Decision _CloseQuaterDodge()
     {
         var minDistance = -1f;
-        Collidable closestBullet = null;
-        foreach (var bullet in _bullets)
+        ItemView closestBullet = null;
+        foreach (var item in _items)
         {
-            var direction = bullet.transform.position - _playerTransform.position;
-            var distance = direction.magnitude;
-            if (minDistance < 0 || distance < minDistance)
+            if (item.Type == Item.Types.NormalBullet ||
+                item.Type == Item.Types.FastBullet ||
+                item.Type == Item.Types.TracingBullet)
             {
-                minDistance = distance;
-                closestBullet = bullet;
+                var direction = item.View.transform.position - _playerTransform.position;
+                var distance = direction.magnitude;
+                if (minDistance < 0 || distance < minDistance)
+                {
+                    minDistance = distance;
+                    closestBullet = item.View;
+                }
             }
         }
-        if (closestBullet != null && minDistance < _closeQuaterDodgeThreshold)
+        if (closestBullet != null)
         {
-            var rigidBody = closestBullet.GetComponent<Rigidbody>();
-            var evadeDirection1 = Vector3.Cross(Vector3.back, rigidBody.velocity);
-            var evadeDirection2 = Vector3.Cross(Vector3.forward, rigidBody.velocity);
-            var evadeDirection = 
-                (_playerTransform.position + evadeDirection1 - closestBullet.transform.position).magnitude >
-                (_playerTransform.position + evadeDirection2 - closestBullet.transform.position).magnitude ?
-                evadeDirection1 :
-                evadeDirection2;
-
-            return new Decision
+            float confidence = Mathf.Pow(1-minDistance/_closeQuaterDodgeThreshold, 2);
+            if (minDistance < _playerBounds.min.magnitude)
             {
-                direction = evadeDirection,
-                confidence = 0.9f
-            };
+                return new Decision
+                {
+                    direction = _playerTransform.position - closestBullet.transform.position,
+                    confidence = 1
+                };
+            }
+            else if (minDistance < _closeQuaterDodgeThreshold)
+            {
+                var rigidBody = closestBullet.GetComponent<Rigidbody>();
+                var evadeDirection1 = Vector3.Cross(Vector3.back, rigidBody.velocity);
+                var evadeDirection2 = Vector3.Cross(Vector3.forward, rigidBody.velocity);
+                var evadeDirection = 
+                    (_playerTransform.position + evadeDirection1 - closestBullet.transform.position).magnitude >
+                    (_playerTransform.position + evadeDirection2 - closestBullet.transform.position).magnitude ?
+                    evadeDirection1 :
+                    evadeDirection2;
+
+                return new Decision
+                {
+                    direction = evadeDirection,
+                    confidence = confidence
+                };
+            }
         }
         return new Decision
         {

@@ -3,6 +3,11 @@ using UnityEngine;
 
 public class GameManager
 {
+    #region Public const
+    // Probability of spawning bullets is increased with frame count.
+    // It spawns bullet every frame when reaching this number
+    public const int MAX_BULLET_FRAME = 10000; 
+    #endregion
     #region Private properties
     private GameView _gameView;
     private AiPlayer _aiPlayer;
@@ -11,8 +16,7 @@ public class GameManager
     private bool _isGameOver;
     private int _frameCounter;
     private int _playerLifes;
-    private List<Collidable> _bullets;
-    private List<Collidable> _extends;
+    private List<Item> _items;
 
     #endregion
 
@@ -20,10 +24,8 @@ public class GameManager
     public GameManager(GameView gameView)
     {
         _gameView = gameView;
-        _gameView.OnBulletHit += _CheckPlayerLifes;
-        _gameView.OnBulletOutOfBounds += _RemoveBullet;
-        _gameView.OnExtendHit += _AddPlayerLifes;
-        _gameView.OnExtendOutOfBounds += _RemoveExtend;
+        _gameView.OnItemHit += _UpdatePlayerLifes;
+        _gameView.OnItemOutOfBounds += _RemoveItem;
         _gameView.OnPlayerOutOfBounds += _GameOver;
         _gameView.OnClickRetry += _Initialize;
         _gameView.OnIntroAnimationEnd += _IntroAnimationEnded;
@@ -39,19 +41,9 @@ public class GameManager
         }
         
         _frameCounter++;
-        if (_frameCounter % 10 == 0)
-        {
-            var bullet = _gameView.SpawnBullet();            
-            _bullets.Add(bullet);
-        }
-        if (_frameCounter % 100 == 0)
-        {
-            var extend = _gameView.SpawnExtends();
-            _extends.Add(extend);
-        }
-
         var score = _CalculateScore(_frameCounter);
         _gameView.UpdateInfo(_frameCounter, score, _playerLifes);
+        _UpdateItems(_frameCounter);
         _PlayerControl();
         _AiControl();       
     }
@@ -63,24 +55,15 @@ public class GameManager
         _isIntroAnimationEnd = false;
         _isGameOver = false;
         _frameCounter = 0;
-        _playerLifes = 1;
-        if (_bullets == null)
+        _playerLifes = 5;
+        if (_items == null)
         {
-            _bullets = new List<Collidable>();
+            _items = new List<Item>();
         }
-        for (int i = _bullets.Count-1; i >= 0; i--)
+        for (int i = _items.Count-1; i >= 0; i--)
         {
-            _gameView.RecycleBullet(_bullets[i]);
-            _bullets.RemoveAt(i);
-        }
-        if (_extends == null)
-        {
-            _extends = new List<Collidable>();
-        }
-        for (int i = _extends.Count-1; i >= 0; i--)
-        {
-            _gameView.RecycleBullet(_extends[i]);
-            _extends.RemoveAt(i);
+            _gameView.RecycleItem(_items[i]);
+            _items.RemoveAt(i);
         }
 
         _gameView.Initialize(_playerLifes);
@@ -88,8 +71,8 @@ public class GameManager
             Vector2.zero,
             _gameView.PlayerTransform,
             _gameView.PlayerBounds,
-            _bullets,
-            _extends
+            _gameView.BorderBounds,
+            _items
         );
     }
 
@@ -101,6 +84,32 @@ public class GameManager
     private int _CalculateScore(int frameCount)
     {
         return (int)Mathf.Pow(frameCount, 1.05f);
+    }
+
+    private void _UpdateItems(int frameCount)
+    {
+        float probability = Mathf.Pow((float)frameCount/MAX_BULLET_FRAME, 0.8f);
+        if (Random.Range(0f, 1f) < probability)
+        {
+            float type = Random.Range(0f, 1f);
+            if (type < 0.1f)
+            {
+                _items.Add(_gameView.SpawnItem(Item.Types.TracingBullet));
+            }
+            else if (type < 0.3f)
+            {
+                _items.Add(_gameView.SpawnItem(Item.Types.FastBullet));
+            }
+            else if (type < 0.95f)
+            {
+                _items.Add(_gameView.SpawnItem(Item.Types.NormalBullet));
+            }
+            else
+            {
+                _items.Add(_gameView.SpawnItem(Item.Types.OneUp));
+            }
+        }
+        _gameView.UpdateTracingBullet(_items);
     }
 
     private void _PlayerControl()
@@ -118,40 +127,41 @@ public class GameManager
 
     private void _GameOver()
     {
+        if (!_isIntroAnimationEnd)
+        {
+            return;
+        }
+
         _isGameOver = true;
         _gameView.ShowGameOver();
     }
 
-    private void _CheckPlayerLifes(Collidable bullet)
+    private void _UpdatePlayerLifes(Item item)
     {
-        _playerLifes--;
+        if (item.Type == Item.Types.NormalBullet ||
+            item.Type == Item.Types.FastBullet ||
+            item.Type == Item.Types.TracingBullet)
+        {
+            _playerLifes--;            
+        }
+        else if (item.Type == Item.Types.OneUp)
+        {
+            _playerLifes++;
+        }
         _gameView.SetPlayerLifes(_playerLifes);
+        _RemoveItem(item);
 
         if (_playerLifes <= 0)
         {
             _GameOver();
             return;
         }
-
-        _RemoveBullet(bullet);
     }
 
-    private void _RemoveBullet(Collidable bullet)
+    private void _RemoveItem(Item item)
     {
-        _bullets.Remove(bullet);
-        _gameView.RecycleBullet(bullet);
-    }
-
-    private void _AddPlayerLifes(Collidable extend)
-    {
-        _playerLifes++;
-        _RemoveExtend(extend);
-    }
-
-    private void _RemoveExtend(Collidable extend)
-    {
-        _extends.Remove(extend);
-        _gameView.RecycleExtend(extend);
+        _gameView.RecycleItem(item);
+        _items.Remove(item);
     }
     #endregion
 }
