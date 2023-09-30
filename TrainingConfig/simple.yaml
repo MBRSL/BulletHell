@@ -1,0 +1,65 @@
+env_settings:
+  env_path: Executable\BulletHell 
+  num_envs: 5
+  
+engine_settings:
+  width: 640
+  height: 480
+  time_scale: 100
+  no_graphics: true
+
+default_settings:
+  trainer_type: ppo
+  hyperparameters:
+    batch_size: 512
+    buffer_size: 409600
+    learning_rate: 0.0003
+    beta: 0.005
+    epsilon: 0.2
+    lambd: 0.95
+    num_epoch: 3
+    learning_rate_schedule: linear
+  network_settings:
+    normalize: false
+    hidden_units: 128
+    num_layers: 2
+    vis_encode_type: simple
+  keep_checkpoints: 10
+  checkpoint_interval: 2000000
+  time_horizon: 1024
+  summary_freq: 10000
+  
+behaviors:
+  DodgeAgent:
+    reward_signals:
+      extrinsic:
+        strength: 1.0
+        gamma: 0.96
+      gail:
+        strength: 0.1
+        gamma: 0.96
+        demo_path: RecordedDemo\simple.demo
+        use_actions: false
+        use_vail: false
+      curiosity:
+        strength: 0.2
+        gamma: 0.96
+    behavioral_cloning:
+      demo_path: RecordedDemo\simple.demo
+      strength: 0.1
+      gamma: 0.96
+      steps: 1000000
+    max_steps: 10000000
+
+environment_parameters:
+  trainingMode:
+    curriculum:
+      - name: simpleBullet # This is the start of the second lesson
+        completion_criteria:
+          measure: progress
+          behavior: DodgeAgent
+          signal_smoothing: true
+          min_lesson_length: 1000
+          threshold: 1
+          require_reset: true
+        value: 1
