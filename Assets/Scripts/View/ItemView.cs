@@ -9,22 +9,34 @@ public class ItemView : MonoBehaviour
     #endregion
     
     #region Public methods
-    public Bounds Bounds { get; private set;}
-    public Rigidbody Rigidbody {get; private set; }
-    public void Initialize()
-    {
-        Bounds = GetComponent<Collider>().bounds;
-        Rigidbody = GetComponent<Rigidbody>();
+    public Bounds Bounds {
+        get
+        {
+            if (_bounds == null)
+            {
+                _bounds = GetComponent<Collider>().bounds;
+            }
+            return _bounds.Value;
+        }
+    }
+    public Rigidbody Rigidbody {
+        get
+        {
+            if (_rigidbody == null)
+            {
+                _rigidbody = GetComponent<Rigidbody>();
+            }
+            return _rigidbody;
+        }
     }
     #endregion
     
+    #region Private properties
+    private Bounds? _bounds;
+    private Rigidbody _rigidbody;
+    #endregion
+
     #region Unity functions
-    private void Start()
-    {
-        Bounds = GetComponent<Collider>().bounds;
-        Rigidbody = GetComponent<Rigidbody>();
-    }
-    
     private void OnTriggerEnter(Collider other)
     {
         if (OnHit != null)

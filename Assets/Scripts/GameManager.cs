@@ -1,51 +1,85 @@
 using System.Collections.Generic;
+using Unity.MLAgents;
 using UnityEngine;
 
 public class GameManager
 {
-    #region Public const
-    // Probability of spawning bullets is increased with frame count.
-    // It spawns bullet every frame when reaching this number
-    public const int MAX_BULLET_FRAME = 10000; 
+    #region Public properties    
+    public enum TrainingMode
+    {
+        Border,
+        LessBullets,
+        NormalBullets,
+        IncreasingBullets
+    }
     #endregion
+
     #region Private properties
     private GameView _gameView;
-    private AiPlayer _aiPlayer;
+    private DodgeAgent _dodgeAgent;
+    private OldDodgeAgent _oldDodgeAgent;
     
+    private Trainer _trainer;
     private bool _isIntroAnimationEnd;
     private bool _isGameOver;
     private int _frameCounter;
+    private int _hitCounter;
+    private int _oneUpCounter;
     private int _playerLifes;
     private List<Item> _items;
-
+    private Vector3 _currentAiMovement;
+    private float _defaultTrainingMode;
     #endregion
 
     #region Public methods
-    public GameManager(GameView gameView)
+    public GameManager(GameView gameView, DodgeAgent dodgeAgent, float defaultTrainingMode)
     {
         _gameView = gameView;
         _gameView.OnItemHit += _UpdatePlayerLifes;
         _gameView.OnItemOutOfBounds += _RemoveItem;
-        _gameView.OnPlayerOutOfBounds += _GameOver;
+        _gameView.OnPlayerOutOfBounds += _OutOfBound;
         _gameView.OnClickRetry += _Initialize;
         _gameView.OnIntroAnimationEnd += _IntroAnimationEnded;
 
+        _dodgeAgent = dodgeAgent;
+        _dodgeAgent.OnMoving += _ReceiveAiMovement;
+
+        _defaultTrainingMode = Academy.Instance.EnvironmentParameters.GetWithDefault("trainingMode", defaultTrainingMode);
+        _InitTrainer(_defaultTrainingMode);
         _Initialize();
     }
 
     public void Update()
     {
-        if (!_isIntroAnimationEnd || _isGameOver)
+        //if (!_isIntroAnimationEnd || _isGameOver)
+        if (_isGameOver)
         {
             return;
         }
-        
         _frameCounter++;
         var score = _CalculateScore(_frameCounter);
-        _gameView.UpdateInfo(_frameCounter, score, _playerLifes);
+        var reward = _dodgeAgent.RewardSource;
+        _gameView.UpdateInfo(
+            _frameCounter,
+            score,
+            reward,
+            _hitCounter,
+            _oneUpCounter,
+            _dodgeAgent.GetCumulativeReward(),
+            _trainer.ToString(),
+            _playerLifes);
         _UpdateItems(_frameCounter);
         _PlayerControl();
-        _AiControl();       
+        //_OldAiControl();
+        _AiControl(_currentAiMovement);
+
+        if (_trainer.ShouldEndEpisode(_frameCounter))
+        {
+            Debug.Log($"End Episode: {_dodgeAgent.GetCumulativeReward()}");
+            _dodgeAgent.Pass();
+            _dodgeAgent.EndEpisode();
+            _Initialize();
+        }
     }
     #endregion
 
@@ -55,7 +89,8 @@ public class GameManager
         _isIntroAnimationEnd = false;
         _isGameOver = false;
         _frameCounter = 0;
-        _playerLifes = 5;
+        _hitCounter = 0;
+        _oneUpCounter = 0;
         if (_items == null)
         {
             _items = new List<Item>();
@@ -66,19 +101,56 @@ public class GameManager
             _items.RemoveAt(i);
         }
 
-        _gameView.Initialize(_playerLifes);
-            _aiPlayer = new AiPlayer(
-            Vector2.zero,
+        _playerLifes = _trainer.GetInitPlayerLifes();
+        _gameView.Initialize(_trainer.GetInitPlayerPosition(), _playerLifes);
+        _oldDodgeAgent = new OldDodgeAgent
+        (
             _gameView.PlayerTransform,
             _gameView.PlayerBounds,
             _gameView.BorderBounds,
             _items
         );
+
+        _dodgeAgent.InjectData
+        (
+            _oldDodgeAgent,
+            _gameView.PlayerTransform,
+            _gameView.BorderBounds,
+            _gameView.PlayerBounds.extents.magnitude,
+            _items
+        );
+    }
+
+    private void _InitTrainer(float mode)
+    {
+        // Mix mode
+        if (mode < 0)
+        {
+            mode = Random.Range(0, 3);
+        }
+
+        if (mode <= 0)
+        {
+            _trainer = new BorderTrainer(_gameView.BorderBounds);
+        }
+        else if (mode <= 1)
+        {
+            _trainer = new SingleItemTrainer(_gameView.ItemSpawnBounds);
+        }
+        else if (mode <= 2)
+        {
+            _trainer = new NormalItemTrainer(_gameView.ItemSpawnBounds, _gameView.BorderBounds);
+        }
+        else
+        {
+            _trainer = new IncreasingItemTrainer(_gameView.ItemSpawnBounds, _gameView.BorderBounds);
+        }
     }
 
     private void _IntroAnimationEnded()
     {
         _isIntroAnimationEnd = true;
+        _dodgeAgent.OnEpisodeBegin();
     }
 
     private int _CalculateScore(int frameCount)
@@ -88,26 +160,11 @@ public class GameManager
 
     private void _UpdateItems(int frameCount)
     {
-        float probability = Mathf.Pow((float)frameCount/MAX_BULLET_FRAME, 0.8f);
-        if (Random.Range(0f, 1f) < probability)
+        if (_trainer.ShouldSpawnItem(frameCount))
         {
-            float type = Random.Range(0f, 1f);
-            if (type < 0.1f)
-            {
-                _items.Add(_gameView.SpawnItem(Item.Types.TracingBullet));
-            }
-            else if (type < 0.3f)
-            {
-                _items.Add(_gameView.SpawnItem(Item.Types.FastBullet));
-            }
-            else if (type < 0.95f)
-            {
-                _items.Add(_gameView.SpawnItem(Item.Types.NormalBullet));
-            }
-            else
-            {
-                _items.Add(_gameView.SpawnItem(Item.Types.OneUp));
-            }
+            var spawnItemData = _trainer.GetSpawnItemData();
+            var item = _gameView.SpawnItem(spawnItemData.Type, spawnItemData.InitPosition, spawnItemData.TargetPosition);
+            _items.Add(item);
         }
         _gameView.UpdateTracingBullet(_items);
     }
@@ -116,37 +173,72 @@ public class GameManager
     {
         var horizontalInput = Input.GetAxisRaw("Horizontal");
         var verticalInput = Input.GetAxisRaw("Vertical");
-        _gameView.PlayerTransform.position += new Vector3(horizontalInput, verticalInput, 0).normalized * Time.deltaTime * 10;
+        //_gameView.PlayerTransform.localPosition += new Vector3(horizontalInput, verticalInput, 0).normalized * Time.deltaTime;
+        _gameView.PlayerTransform.localPosition += new Vector3(horizontalInput, verticalInput, 0).normalized * Time.fixedDeltaTime * _gameView.PlayerSpeed;
     }
 
-    private void _AiControl()
+    private void _OldAiControl()
     {
-        var offset = _aiPlayer.GetAction().normalized;
-        _gameView.PlayerTransform.position += offset * Time.deltaTime * 10;
+        var offset = _oldDodgeAgent.GetAction().normalized;
+        //_gameView.PlayerTransform.localPosition += offset * Time.deltaTime;
+        _gameView.PlayerTransform.localPosition += offset * Time.fixedDeltaTime * _gameView.PlayerSpeed;
+    }
+
+    private void _ReceiveAiMovement(Vector2 movement)
+    {
+        _currentAiMovement = movement;
+        Update();
+    }
+
+    private void _AiControl(Vector3 movement)
+    {
+        var offset = movement.normalized;
+        _gameView.PlayerTransform.localPosition += offset * Time.fixedDeltaTime * _gameView.PlayerSpeed;
+        //Debug.Log("After move");
+    }
+
+    private void _OutOfBound()
+    {
+        //_gameView.ShowGameOver();
+        _dodgeAgent.OutOfBound(_playerLifes);
+        _playerLifes = 0;
+
+        _GameOver();
     }
 
     private void _GameOver()
     {
+        /*
         if (!_isIntroAnimationEnd)
         {
             return;
         }
+        */
 
         _isGameOver = true;
-        _gameView.ShowGameOver();
+        //Academy.Instance.StatsRecorder.Add("RewardBeforeEpisodeEnds", finalReward);
+        Debug.Log($"Game Over: {_dodgeAgent.GetCumulativeReward()}");
+        _dodgeAgent.EndEpisode();
+
+        _Initialize();
     }
 
     private void _UpdatePlayerLifes(Item item)
     {
+        //Debug.Log("Hit");
         if (item.Type == Item.Types.NormalBullet ||
             item.Type == Item.Types.FastBullet ||
             item.Type == Item.Types.TracingBullet)
         {
-            _playerLifes--;            
+            _playerLifes--;
+            _hitCounter++;
+            _dodgeAgent.Hit();
         }
         else if (item.Type == Item.Types.OneUp)
         {
             _playerLifes++;
+            _oneUpCounter++;
+            _dodgeAgent.GetOneUp();
         }
         _gameView.SetPlayerLifes(_playerLifes);
         _RemoveItem(item);
