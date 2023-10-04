@@ -10,12 +10,12 @@ public class DodgeAgent : Agent
 {
     #region Public
     public const float OUT_OF_BOUND_REWARD = -1f;
-    public const float BULLET_HIT_REWARD = -0.2f;
+    public const float BULLET_HIT_REWARD = -0.1f;
     public const float NORMAL_BULLET_THREAT = 1f;
     public const float TRACING_BULLET_THREAT = 1.2f;
     public const float FAST_BULLET_THREAT = 2f;
     public const float ONEUP_HIT_REWARD = 0.2f;
-    public const float SURVIVAL_REWARD = 0.01f;
+    public const float SURVIVAL_REWARD = 0.002f;
     public event Action<Vector2> OnMoving;
     public Reward RewardSource;
 
@@ -42,11 +42,11 @@ public class DodgeAgent : Agent
             _items = items;
         }
 
-        public float GetVariableReward()
+        public float GetVariableRewardDiff(Vector3 position)
         {
-            var borderDistance = _GetBorderReward();
-            var bulletDistance = _GetBulletReward();
-            var oneUpDistance = _GetOneUpReward();
+            var borderDistance = _GetBorderReward(position);
+            var bulletDistance = _GetBulletReward(position);
+            var oneUpDistance = _GetOneUpReward(position);
             float reward = 
                 0.3f * OUT_OF_BOUND_REWARD * (borderDistance - PrevBorderDistance) +
                 0.3f * BULLET_HIT_REWARD * (bulletDistance - PrevBulletDistance) +
@@ -58,7 +58,19 @@ public class DodgeAgent : Agent
             return reward;
         }
 
-        private float _GetBulletReward()
+        public float GetVariableReward(Vector3 position)
+        {
+            var borderDistance = _GetBorderReward(position);
+            var bulletDistance = _GetBulletReward(position);
+            var oneUpDistance = _GetOneUpReward(position);
+            float reward = 
+                0.3f * OUT_OF_BOUND_REWARD * borderDistance +
+                0.3f * BULLET_HIT_REWARD * bulletDistance +
+                0.3f * ONEUP_HIT_REWARD * oneUpDistance;
+            return reward;
+        }
+
+        private float _GetBulletReward(Vector3 position)
         {
             if (_items == null)
             {
@@ -84,21 +96,46 @@ public class DodgeAgent : Agent
 
                 if (threatCoef > 0)
                 {
-                    var distance = (item.View.transform.localPosition-_playerTransform.localPosition).magnitude;
-                    var distanceWithoutBounds = Mathf.Max(0, distance-_playerColliderRadius);
+                    /*
+                    var vec = (item.View.transform.localPosition-position).magnitude;
+                    var distanceWithoutBounds = Mathf.Max(0, vec-_playerColliderRadius*4);
 
-                    var bulletToPlayer = _playerTransform.localPosition-item.View.transform.localPosition;
+                    var bulletToPlayer = position-item.View.transform.localPosition;
                     var velocitySimilarity = Vector3.Dot(bulletToPlayer.normalized, item.View.Rigidbody.velocity.normalized);
                     // Ignore bullets that are already behind player
                     velocitySimilarity = Mathf.Max(0, velocitySimilarity);
                     // Distance is always a threat, can accidentlly collide to it even if it's behind
-                    sum += threatCoef/(distanceWithoutBounds+1)*(1+velocitySimilarity)/2;
+                    sum += threatCoef * Mathf.Pow(1f/(distanceWithoutBounds+1)*(1+velocitySimilarity)/2, 1.5f);
+                    */
+                    var value = 0f;
+                    var vec = position-item.View.transform.localPosition;
+                    //if (vec.magnitude > _playerColliderRadius*4f)
+                    {
+                        //vec -= vec.normalized * _playerColliderRadius*4f;
+                        // Piriform shape
+                        // https://mathworld.wolfram.com/PiriformSurface.html
+                        var theta = Mathf.PI-Mathf.Atan2(item.View.Rigidbody.velocity.y, item.View.Rigidbody.velocity.x);
+                        //var theta = 0;
+                        var scalerX = 0.07f;
+                        var scalerY = 0.2f;
+                        // When alpha = this number, z has maximum of 1
+                        var alpha = 3.079f;
+                        // Maximum is at x = 3/4*alpha
+                        var xPrime = (vec.x*Mathf.Cos(theta)-vec.y*Mathf.Sin(theta)) * scalerX + 3f/4 * alpha;
+                        var yPrime = (vec.y*Mathf.Cos(theta)+vec.x*Mathf.Sin(theta)) * scalerY;
+                        var x2 = xPrime*xPrime;
+                        var x3 = xPrime*x2;
+                        var x4 = xPrime*x3;
+                        value = Mathf.Max(0, -x4/alpha/alpha + x3/alpha - yPrime*yPrime);
+                    }
+                    var velocitySimilarity = Vector3.Dot(vec.normalized, item.View.Rigidbody.velocity.normalized);
+                    sum += threatCoef * Mathf.Pow(value, 3f);
                 }
             }
             return sum;
         }
 
-        private float _GetOneUpReward()
+        private float _GetOneUpReward(Vector3 position)
         {
             if (_items == null)
             {
@@ -110,18 +147,18 @@ public class DodgeAgent : Agent
             {
                 if (item.Type == Item.Types.OneUp)
                 {
-                    var distance = (item.View.transform.localPosition-_playerTransform.localPosition).magnitude;
-                    var distanceWithoutBounds = Mathf.Max(0, distance-_playerColliderRadius);
-                    sum += 1f/(distanceWithoutBounds+1);
+                    var distance = (item.View.transform.localPosition-position).magnitude;
+                    var distanceWithoutBounds = Mathf.Max(0, distance-_playerColliderRadius*4);
+                    sum += Mathf.Pow(1f/(distanceWithoutBounds+1), 1.5f);
                 }
             }
             return sum;
         }
 
-        public float _GetBorderReward()
+        public float _GetBorderReward(Vector3 position)
         {
-            var dx = Mathf.Abs(_playerTransform.localPosition.x/_borderBounds.extents.x);
-            var dy = Mathf.Abs(_playerTransform.localPosition.y/_borderBounds.extents.y);
+            var dx = Mathf.Abs(position.x/_borderBounds.extents.x);
+            var dy = Mathf.Abs(position.y/_borderBounds.extents.y);
             return Mathf.Max(Mathf.Pow(dx, 10), Mathf.Pow(dy, 10));
         }
     }
@@ -171,10 +208,10 @@ public class DodgeAgent : Agent
         AddReward(ONEUP_HIT_REWARD);
     }
 
-    public void OutOfBound()
+    public void OutOfBound(int remainLifes)
     {
         Academy.Instance.StatsRecorder.Add("OutOfBound", 1, StatAggregationMethod.Sum);
-        SetReward(OUT_OF_BOUND_REWARD);
+        AddReward(OUT_OF_BOUND_REWARD + BULLET_HIT_REWARD * remainLifes);
     }
 
     public void Pass()
@@ -249,7 +286,7 @@ public class DodgeAgent : Agent
     public override void OnActionReceived(ActionBuffers actions)
     {
         OnMoving?.Invoke(Movement.ClockDirection[actions.DiscreteActions[0]]);
-        AddReward(RewardSource.GetVariableReward());
+        AddReward(RewardSource.GetVariableRewardDiff(_playerTransform.localPosition));
         AddReward(SURVIVAL_REWARD);
     }
     #endregion
