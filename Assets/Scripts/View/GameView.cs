@@ -63,7 +63,7 @@ public class GameView : MonoBehaviour
 
     public void Initialize(Vector3 playerInitPosition, int playerLifes)
     {
-        //_introDirector.Play();
+        _introDirector.Play();
         _retryButton.onClick.RemoveAllListeners();
         _retryButton.onClick.AddListener(_OnclickRetry);
         _gameOverUi.SetActive(false);
@@ -79,8 +79,8 @@ public class GameView : MonoBehaviour
         if (_debugRenderer.gameObject.activeInHierarchy)
         {
             _shaderDebugging = new ShaderDebugging(_debugRenderer, _playerSpace.bounds);
-        }
-        SetPlayerLifes(playerLifes);
+        }        
+        UpdateInfo(0, 0, null, 0, 0, 0, "", playerLifes);
     }
 
     public void TriggerIntroAnimationEnd()
@@ -93,7 +93,7 @@ public class GameView : MonoBehaviour
         _explosionFx.transform.localPosition = _player.transform.localPosition;
         _explosionFx.Play();
         _player.gameObject.SetActive(false);
-        //_gameOverUi.SetActive(true);
+        _gameOverUi.SetActive(true);
     }
 
     public void SetPlayerLifes(int playerLifes)
@@ -114,6 +114,7 @@ public class GameView : MonoBehaviour
         _infoText.text = "";
         _infoText.text += $"Frame: {frameCount}\n";
         _infoText.text += $"Score: {score}\n";
+        /*
         _infoText.text += $"Bullet: {reward.PrevBulletDistance:F3}\n";
         _infoText.text += $"OneUp: {reward.PrevOneUpDistance:F3}\n";
         _infoText.text += $"Border: {reward.PrevBorderDistance:F3}\n";
@@ -121,6 +122,7 @@ public class GameView : MonoBehaviour
         _infoText.text += $"OneUps: {oneUps}\n";
         _infoText.text += $"Cumulative Reward: {cumulativeReward:F3}\n";
         _infoText.text += $"Training: {trainingMode}\n";
+        */
         _playerLifesText.text = $"Lifes: {playerLifes}";
 
         if (_debugRenderer.gameObject.activeInHierarchy)

@@ -51,8 +51,8 @@ public class GameManager
 
     public void Update()
     {
-        //if (!_isIntroAnimationEnd || _isGameOver)
-        if (_isGameOver)
+        if (!_isIntroAnimationEnd || _isGameOver)
+        //if (_isGameOver)
         {
             return;
         }
@@ -199,7 +199,11 @@ public class GameManager
 
     private void _OutOfBound()
     {
-        //_gameView.ShowGameOver();
+        if (!_isIntroAnimationEnd)
+        {
+            return;
+        }
+
         _dodgeAgent.OutOfBound(_playerLifes);
         _playerLifes = 0;
 
@@ -208,23 +212,27 @@ public class GameManager
 
     private void _GameOver()
     {
-        /*
         if (!_isIntroAnimationEnd)
         {
             return;
         }
-        */
 
+        _gameView.ShowGameOver();
         _isGameOver = true;
         //Academy.Instance.StatsRecorder.Add("RewardBeforeEpisodeEnds", finalReward);
         Debug.Log($"Game Over: {_dodgeAgent.GetCumulativeReward()}");
         _dodgeAgent.EndEpisode();
 
-        _Initialize();
+        //_Initialize();
     }
 
     private void _UpdatePlayerLifes(Item item)
     {
+        if (!_isIntroAnimationEnd || _isGameOver)
+        {
+            return;
+        }
+        
         //Debug.Log("Hit");
         if (item.Type == Item.Types.NormalBullet ||
             item.Type == Item.Types.FastBullet ||
