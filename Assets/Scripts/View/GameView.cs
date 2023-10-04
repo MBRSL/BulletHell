@@ -4,7 +4,6 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.Playables;
 using UnityEngine.UI;
-using Random = UnityEngine.Random;
 
 public class GameView : MonoBehaviour
 {
@@ -104,7 +103,7 @@ public class GameView : MonoBehaviour
     public void UpdateInfo(
         int frameCount,
         int score,
-        DodgeAgent.Reward reward,
+        RewardFunction reward,
         int hits,
         int oneUps,
         float cumulativeReward,

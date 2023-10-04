@@ -38,7 +38,7 @@ public class ShaderDebugging : IDisposable
 		}
 	}
 
-    public void Update(DodgeAgent.Reward reward)
+    public void Update(RewardFunction reward)
 	{
 		var nativeArray = _rewardValueBuffer.LockBufferForWrite<float>(0, WIDTH*HEIGHT);
 		for (int j = 0; j < HEIGHT; j++)
@@ -75,12 +75,4 @@ public class ShaderDebugging : IDisposable
         Dispose(disposing: true);
         GC.SuppressFinalize(this);
     }
-    /*
-   void OnGUI()
-   {
-       GUIStyle style = new GUIStyle();
-       style.fontSize = 32;
-       GUI.Label(new Rect(50, 50, 400, 100), label, style);
-   }
-*/
 }
