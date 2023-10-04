@@ -28,12 +28,14 @@ public class GameView : MonoBehaviour
     [SerializeField] private TextMeshProUGUI _playerLifesText;
     [SerializeField] private GameObject _gameOverUi;
     [SerializeField] private Button _retryButton;
+    [SerializeField] private Renderer _debugRenderer;
     [SerializeField] private float _playerSpeed;
     [SerializeField] private float _itemSpeed;
     #endregion
 
     #region Private properties
     private Collider _playerCollider;
+    private ShaderDebugging _shaderDebugging;
     #endregion
 
     #region Public functions
@@ -74,6 +76,10 @@ public class GameView : MonoBehaviour
         _player.OnLeave += _ChechPlayerInBounds;
         _playerCollider = _player.GetComponent<Collider>();
 
+        if (_debugRenderer.gameObject.activeInHierarchy)
+        {
+            _shaderDebugging = new ShaderDebugging(_debugRenderer, _playerSpace.bounds);
+        }
         SetPlayerLifes(playerLifes);
     }
 
@@ -98,9 +104,7 @@ public class GameView : MonoBehaviour
     public void UpdateInfo(
         int frameCount,
         int score,
-        float bulletDistance,
-        float oneUpDistance,
-        float borderDistance,
+        DodgeAgent.Reward reward,
         int hits,
         int oneUps,
         float cumulativeReward,
@@ -110,14 +114,19 @@ public class GameView : MonoBehaviour
         _infoText.text = "";
         _infoText.text += $"Frame: {frameCount}\n";
         _infoText.text += $"Score: {score}\n";
-        _infoText.text += $"Bullet: {bulletDistance:F3}\n";
-        _infoText.text += $"OneUp: {oneUpDistance:F3}\n";
-        _infoText.text += $"Border: {borderDistance:F3}\n";
+        _infoText.text += $"Bullet: {reward.PrevBulletDistance:F3}\n";
+        _infoText.text += $"OneUp: {reward.PrevOneUpDistance:F3}\n";
+        _infoText.text += $"Border: {reward.PrevBorderDistance:F3}\n";
         _infoText.text += $"Hits: {hits}\n";
         _infoText.text += $"OneUps: {oneUps}\n";
         _infoText.text += $"Cumulative Reward: {cumulativeReward:F3}\n";
         _infoText.text += $"Training: {trainingMode}\n";
         _playerLifesText.text = $"Lifes: {playerLifes}";
+
+        if (_debugRenderer.gameObject.activeInHierarchy)
+        {
+            _shaderDebugging.Update(reward);
+        }
     }
 
     public void UpdateTracingBullet(List<Item> items)
