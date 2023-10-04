@@ -33,17 +33,15 @@ public abstract class Trainer
         {
             return Item.Types.FastBullet;
         }
-        //else if (typeRnd < 0.95f)
-        else
+        else if (typeRnd < 0.95f)
+        //else
         {
             return Item.Types.NormalBullet;
         }
-        /*
         else
         {
             return Item.Types.OneUp;
         }
-        */
     }
 /*
     protected Item.Types _GetItemTypeButOneUpMore()

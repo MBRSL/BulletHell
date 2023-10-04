@@ -6,7 +6,7 @@ public class IncreasingItemTrainer : Trainer
     #region Public const
     // Probability of spawning bullets is increased with frame count.
     // It spawns bullet every frame when reaching this number
-    public const int MAX_BULLET_FRAME = 10000;
+    public const int MAX_BULLET_FRAME = 3000;
     #endregion
 
     #region Private properties
@@ -30,7 +30,7 @@ public class IncreasingItemTrainer : Trainer
 
     public override int GetInitPlayerLifes()
     {
-        return 30;
+        return 1;
     }
 
     public override Vector3 GetInitPlayerPosition()
