@@ -47,7 +47,6 @@ public class GameManager
         _items = new List<Item>();
 
         _defaultTrainingMode = Academy.Instance.EnvironmentParameters.GetWithDefault("trainingMode", defaultTrainingMode);
-        _InitTrainer(_defaultTrainingMode);
         _Initialize();
     }
 
@@ -100,6 +99,7 @@ public class GameManager
             _items.RemoveAt(i);
         }
 
+        _InitTrainer(_defaultTrainingMode);
         _playerLifes = _trainer.GetInitPlayerLifes();
         _gameView.Initialize(_trainer.GetInitPlayerPosition(), _playerLifes);
         _oldDodgeAgent = new OldDodgeAgent
