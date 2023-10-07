@@ -137,11 +137,11 @@ public class GameManager
         }
         else if (mode <= 2)
         {
-            _trainer = new NormalItemTrainer(_gameView.ItemSpawnBounds, _gameView.BorderBounds);
+            _trainer = new NormalItemTrainer(_gameView.ItemSpawnBounds, _gameView.BorderBounds, _gameView.PlayerTransform);
         }
         else
         {
-            _trainer = new IncreasingItemTrainer(_gameView.ItemSpawnBounds, _gameView.BorderBounds);
+            _trainer = new IncreasingItemTrainer(_gameView.ItemSpawnBounds, _gameView.BorderBounds, _gameView.PlayerTransform);
         }
     }
 

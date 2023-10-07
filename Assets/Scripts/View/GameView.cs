@@ -138,7 +138,7 @@ public class GameView : MonoBehaviour
                 var rigidBody = item.View.Rigidbody;
                 var originalMagnitude = rigidBody.velocity.magnitude;
                 var toPlayerVec = _player.transform.localPosition - item.View.transform.localPosition;
-                rigidBody.velocity = (rigidBody.velocity + toPlayerVec.normalized * Time.fixedDeltaTime).normalized * originalMagnitude;
+                rigidBody.velocity = (rigidBody.velocity + toPlayerVec.normalized * Time.fixedDeltaTime * 3).normalized * originalMagnitude;
             }
         }
     }

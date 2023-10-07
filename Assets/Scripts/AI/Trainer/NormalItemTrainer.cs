@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using UnityEngine;
 
 public class NormalItemTrainer : Trainer
@@ -6,16 +5,19 @@ public class NormalItemTrainer : Trainer
     #region Private properties
     private Bounds _itemSpawnBounds;
     private Bounds _borderBounds;
+    private Transform _playerTransform;
     #endregion
 
     #region Public methods
     public NormalItemTrainer(
         Bounds itemSpawnBounds,
-        Bounds borderBounds
+        Bounds borderBounds,
+        Transform playerTransform     
     )
     {
         _itemSpawnBounds = itemSpawnBounds;
         _borderBounds = borderBounds;
+        _playerTransform = playerTransform;
     }
 
     public override int GetInitPlayerLifes()
@@ -30,16 +32,22 @@ public class NormalItemTrainer : Trainer
 
     public override SpawnItemData GetSpawnItemData()
     {
+        var type = _GetGameRandomItemType();
         var theta = Random.Range(0f, 2*Mathf.PI);
-        return new SpawnItemData
+        var targetPosition = _playerTransform.localPosition;
+        if (type != Item.Types.TracingBullet)
         {
-            Type = _GetGameRandomItemType(),
-            InitPosition = _itemSpawnBounds.extents.magnitude * new Vector3(Mathf.Cos(theta), Mathf.Sin(theta), 0),
-            TargetPosition = new Vector3(
+            targetPosition = new Vector3(
                 _borderBounds.extents.x * Random.Range(-1f, 1f),
                 _borderBounds.extents.y * Random.Range(-1f, 1f),
                 0
-            )
+            );
+        }
+        return new SpawnItemData
+        {
+            Type = type,
+            InitPosition = _itemSpawnBounds.extents.magnitude * new Vector3(Mathf.Cos(theta), Mathf.Sin(theta), 0),
+            TargetPosition = targetPosition
         };
     }
 

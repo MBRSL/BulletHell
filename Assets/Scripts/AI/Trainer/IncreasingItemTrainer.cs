@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using UnityEngine;
 
 public class IncreasingItemTrainer : Trainer
@@ -42,7 +41,7 @@ public class IncreasingItemTrainer : Trainer
         var type = _GetGameRandomItemType();
         var theta = Random.Range(0f, 2*Mathf.PI);
         var targetPosition = _playerTransform.localPosition;
-        if (type == Item.Types.TracingBullet)
+        if (type != Item.Types.TracingBullet)
         {
             targetPosition = new Vector3(
                 _borderBounds.extents.x * Random.Range(-1f, 1f),
