@@ -62,7 +62,7 @@ public class GameView : MonoBehaviour
 
     public void Initialize(Vector3 playerInitPosition, int playerLifes)
     {
-        _introDirector.Play();
+        //_introDirector.Play();
         _retryButton.onClick.RemoveAllListeners();
         _retryButton.onClick.AddListener(_OnclickRetry);
         _gameOverUi.SetActive(false);
