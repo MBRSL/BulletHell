@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using Unity.MLAgents;
 using UnityEngine;
 
@@ -32,10 +33,11 @@ public class GameManager
     private int _oneUpCounter;
     private int _playerLifes;
     private float _defaultTrainingMode;
+    private int _maxNumObservables;
     #endregion
 
     #region Public methods
-    public GameManager(GameView gameView, DRLAgent drlAgent, float defaultTrainingMode)
+    public GameManager(GameView gameView, DRLAgent drlAgent, float defaultTrainingMode, int maxNumObservables)
     {
         _gameView = gameView;
         _gameView.OnItemHit += _UpdatePlayerLifes;
@@ -44,20 +46,31 @@ public class GameManager
         _gameView.OnClickRetry += _Initialize;
         _gameView.OnIntroAnimationEnd += _IntroAnimationEnded;
 
-        _drlAgent = drlAgent;
-        _drlAgent.OnMoving += _MovePlayer;
-
         _items = new List<Item>();
 
         _rewardFunction = new RewardFunction(
             _gameView.BorderBounds,
-            _gameView.PlayerBounds.extents.magnitude,
-            _items,
-            _drlAgent.MaxNumObservables
+            _gameView.PlayerBounds.extents.magnitude
+        );
+
+        _ruleBasedAgent = new RuleBasedAgent
+        (
+            _gameView.PlayerBounds,
+            _gameView.BorderBounds
+        );
+
+        _drlAgent = drlAgent;
+        _drlAgent.OnMoving += _MovePlayer;
+        _drlAgent.InjectData
+        (
+            _gameView.PlayerTransform,
+            _gameView.BorderBounds,
+            _rewardFunction
         );
 
         _defaultTrainingMode = Academy.Instance.EnvironmentParameters.GetWithDefault("trainingMode", defaultTrainingMode);
-
+        _maxNumObservables = maxNumObservables;
+        
         _Initialize();
     }
 
@@ -69,7 +82,14 @@ public class GameManager
         }
 
         _frameCounter++;
-        _drlAgent.RequestDecision();
+
+        var closestItems = _items
+            .OrderBy(i => (i.View.transform.localPosition-_gameView.PlayerTransform.localPosition).magnitude)
+            .Take(_maxNumObservables)
+            .ToArray();
+
+        _UpdatePlayerPosition(closestItems);
+
         _gameView.UpdateInfo(
             _frameCounter,
             _CalculateScore(_frameCounter),
@@ -81,7 +101,8 @@ public class GameManager
             _drlAgent.GetCumulativeReward(),
             _trainer.ToString(),
             _playerLifes);
-        _gameView.UpdateRewardVisualizer(_rewardFunction);
+        _gameView.UpdateRewardVisualizer(_rewardFunction, closestItems);
+
         _UpdateItems(_frameCounter);
 
         if (_trainer.ShouldEndEpisode(_frameCounter))
@@ -110,21 +131,6 @@ public class GameManager
         _InitTrainer(_defaultTrainingMode);
         _playerLifes = _trainer.GetInitPlayerLifes();
         _gameView.Initialize(_trainer.GetInitPlayerPosition(), _playerLifes);
-        _ruleBasedAgent = new RuleBasedAgent
-        (
-            _gameView.PlayerTransform,
-            _gameView.PlayerBounds,
-            _gameView.BorderBounds,
-            _items
-        );
-
-        _drlAgent.InjectData
-        (
-            _ruleBasedAgent,
-            _gameView.PlayerTransform,
-            _gameView.BorderBounds,
-            _rewardFunction
-        );
     }
 
     private void _InitTrainer(float mode)
@@ -162,6 +168,33 @@ public class GameManager
     private int _CalculateScore(int frameCount)
     {
         return (int)Mathf.Pow(frameCount, 1.05f);
+    }
+
+    private void _UpdatePlayerPosition(IEnumerable<Item> closestItems)
+    {
+        // User inputs can override agents' action
+        var input = new Vector2(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical"));
+        if (input != Vector2.zero)
+        {
+            var direction = Movement.SnapToClockDirection(input);
+            _MovePlayer(direction);
+        }
+        else
+        {
+            if (Environment.IsTraining)
+            {
+                // We need to feed the current items for agents to make decision
+                // But unfortunately we cannot pass it to Unity's CollectObservations() so we have to inject here
+                _drlAgent.InjectClosestItems(closestItems);
+                // This triggers Unity's OnActionReceived(), and then triggers _MovePlayer() in this class
+                _drlAgent.RequestDecision();
+            }
+            else
+            {
+                Vector3 direction = _ruleBasedAgent.RequestAction(_gameView.PlayerTransform.localPosition, closestItems);
+                _MovePlayer(direction);
+            }
+        }
     }
 
     private void _UpdateItems(int frameCount)

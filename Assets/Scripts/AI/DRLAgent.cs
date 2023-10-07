@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Unity.MLAgents;
 using Unity.MLAgents.Actuators;
 using Unity.MLAgents.Sensors;
@@ -19,26 +20,27 @@ public class DRLAgent : Agent
     #endregion
 
     #region Private properties
-    private RuleBasedAgent _ruleBasedAgent;
     private Bounds _borderBounds;
     private Transform _playerTransform;
     private RewardFunction _rewardFunction;
+    private IEnumerable<Item> _closestItems;
     #endregion
 
     #region Public method
-    public int MaxNumObservables { get { return _bufferSensorComponent.MaxNumObservables; } }
-
     public void InjectData(
-        RuleBasedAgent ruleBasedAgent,
         Transform playerTransform,
         Bounds borderBounds,
         RewardFunction rewardFunction
     )
     {
-        _ruleBasedAgent = ruleBasedAgent;
         _playerTransform = playerTransform;
         _borderBounds = borderBounds;
         _rewardFunction = rewardFunction;
+    }
+
+    public void InjectClosestItems(IEnumerable<Item> closestItems)
+    {
+        _closestItems = closestItems;
     }
 
     public void Hit()
@@ -69,11 +71,11 @@ public class DRLAgent : Agent
 
     public override void Heuristic(in ActionBuffers actionsOut)
     {
-        var horizontalInput = Input.GetAxisRaw("Horizontal");
-        var verticalInput = Input.GetAxisRaw("Vertical");
-        var input = horizontalInput != 0 || verticalInput != 0 ?
-            new Vector3(horizontalInput, verticalInput, 0) :
-            _ruleBasedAgent.GetAction();
+        var input = new Vector3(
+            Input.GetAxisRaw("Horizontal"),
+            Input.GetAxisRaw("Vertical"),
+            0
+        );
         var direction = Movement.ToClockDirection(input);
         var output = actionsOut.DiscreteActions;
         output[0] = direction;
@@ -92,8 +94,7 @@ public class DRLAgent : Agent
         );
         sensor.AddObservation(normalizedPlayerPosition);
 
-        var closestItems = _rewardFunction.GetClosestItems(_playerTransform.localPosition);
-        foreach (var item in closestItems)
+        foreach (var item in _closestItems)
         {
             var normalizedItemPosition = new Vector2(
                 (item.View.transform.localPosition.x-_playerTransform.localPosition.x)/_borderBounds.extents.x,
@@ -130,7 +131,7 @@ public class DRLAgent : Agent
     public override void OnActionReceived(ActionBuffers actions)
     {
         OnMoving?.Invoke(Movement.ClockDirection[actions.DiscreteActions[0]]);
-        AddReward(_rewardFunction.GetVariableRewardDiff(_playerTransform.localPosition));
+        AddReward(_rewardFunction.GetVariableRewardDiff(_playerTransform.localPosition, _closestItems));
         AddReward(SURVIVAL_REWARD);
     }
     #endregion

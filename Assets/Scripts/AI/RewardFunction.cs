@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 
 /// <summary>
@@ -25,34 +24,20 @@ public class RewardFunction
     #region Private properties
     private Bounds _borderBounds;
     private float _playerColliderRadius;
-    private List<Item> _items;
-    private int _maxNumObservables;
     #endregion
 
     #region Public functions
     public RewardFunction(
         Bounds borderBounds,
-        float playerColliderRadius,
-        List<Item> items,
-        int maxNumObservables
+        float playerColliderRadius
     )
     {
         _borderBounds = borderBounds;
         _playerColliderRadius = playerColliderRadius;
-        _items = items;
-        _maxNumObservables = maxNumObservables;
     }
 
-    public IEnumerable<Item> GetClosestItems(Vector3 position)
+    public float GetVariableRewardDiff(Vector3 position, IEnumerable<Item> closestItems)
     {
-        return _items
-            .OrderBy(i => (i.View.transform.localPosition-position).magnitude)
-            .Take(_maxNumObservables);
-    }
-
-    public float GetVariableRewardDiff(Vector3 position)
-    {
-        var closestItems = GetClosestItems(position);
         var borderDistance = _GetBorderReward(position);
         var bulletDistance = _GetBulletReward(position, closestItems);
         var oneUpDistance = _GetOneUpReward(position, closestItems);
@@ -67,9 +52,8 @@ public class RewardFunction
         return reward;
     }
 
-    public float GetVariableReward(Vector3 position)
+    public float GetVariableReward(Vector3 position, IEnumerable<Item> closestItems)
     {
-        var closestItems = GetClosestItems(position);
         var borderDistance = _GetBorderReward(position);
         var bulletDistance = _GetBulletReward(position, closestItems);
         var oneUpDistance = _GetOneUpReward(position, closestItems);

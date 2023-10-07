@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
@@ -42,7 +43,7 @@ public class ShaderDebugging : IDisposable
 		}
 	}
 
-    public void Update(RewardFunction reward)
+    public void Update(RewardFunction reward, IEnumerable<Item> closestItems)
 	{
 		var nativeArray = _rewardValueBuffer.LockBufferForWrite<float>(0, WIDTH*HEIGHT);
 		for (int j = 0; j < HEIGHT; j++)
@@ -51,7 +52,7 @@ public class ShaderDebugging : IDisposable
 			{
 				int idx = j*WIDTH+i;
 				var worldPosition = _position[idx];
-				var value = reward.GetVariableReward(worldPosition);
+				var value = reward.GetVariableReward(worldPosition, closestItems);
 				// Normalize [-1, 1] to color space of [0, 1]
 				//nativeArray[idx] = (value-_prevValue[idx])*20+0.7f;
 				nativeArray[idx] = value*2+0.7f;

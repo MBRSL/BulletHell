@@ -1,6 +1,4 @@
-using System;
 using UnityEngine;
-using UnityEngine.Rendering;
 
 /// <summary>
 /// Use this class to transform continous movements to discrete movements
@@ -47,6 +45,12 @@ public class Movement
         }
         var clockAngleRad = Mathf.PI*2 - angleRad + Mathf.PI/2;
         return (int)Mathf.Round(clockAngleRad/(Mathf.PI/6)) % 12;
+    }
+
+    public static Vector2 SnapToClockDirection(Vector2 vector)
+    {
+        var idx = ToClockDirection(vector);
+        return ClockDirection[idx];
     }
 }
 /*

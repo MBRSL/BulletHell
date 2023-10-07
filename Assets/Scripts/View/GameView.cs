@@ -129,11 +129,11 @@ public class GameView : MonoBehaviour
         SetPlayerLifes(playerLifes);
     }
 
-    public void UpdateRewardVisualizer(RewardFunction reward)
+    public void UpdateRewardVisualizer(RewardFunction reward, IEnumerable<Item> closestItems)
     {
         if (_debugRenderer.gameObject.activeInHierarchy)
         {
-            _shaderDebugging.Update(reward);
+            _shaderDebugging.Update(reward, closestItems);
         }
     }
 

@@ -5434,8 +5434,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _gameView: {fileID: 1805115090110789146}
-  _aiAgent: {fileID: 1168992623550402986}
+  _drlAgent: {fileID: 1168992623550402986}
   _demonstrationRecorder: {fileID: 5398166813028532514}
+  _bufferSensorComponent: {fileID: 7652432617424853212}
   _defaultTrainingMode: 3
   _isMainEnvironment: 1
 --- !u!114 &1805115090110789146
