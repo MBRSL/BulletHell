@@ -27,6 +27,7 @@ public class GameView : MonoBehaviour
     [SerializeField] private TextMeshProUGUI _playerLifesText;
     [SerializeField] private GameObject _gameOverUi;
     [SerializeField] private Button _retryButton;
+    [SerializeField] private GameObject _background;
     [SerializeField] private Renderer _debugRenderer;
     [SerializeField] private float _playerSpeed;
     [SerializeField] private float _itemSpeed;
@@ -62,7 +63,17 @@ public class GameView : MonoBehaviour
 
     public void Initialize(Vector3 playerInitPosition, int playerLifes)
     {
-        //_introDirector.Play();
+        if (Main.IsTraining)
+        {
+            TriggerIntroAnimationEnd();
+            _background.SetActive(false);
+        }
+        else
+        {
+            _introDirector.Play();
+            _background.SetActive(true);
+        }
+
         _retryButton.onClick.RemoveAllListeners();
         _retryButton.onClick.AddListener(_OnclickRetry);
         _gameOverUi.SetActive(false);
@@ -79,7 +90,7 @@ public class GameView : MonoBehaviour
         {
             _shaderDebugging = new ShaderDebugging(_debugRenderer, _playerSpace.bounds);
         }        
-        UpdateInfo(0, 0, null, 0, 0, 0, "", playerLifes);
+        UpdateInfo(0, 0, 0, 0, 0, 0, 0, 0, "", playerLifes);
     }
 
     public void TriggerIntroAnimationEnd()
@@ -103,7 +114,9 @@ public class GameView : MonoBehaviour
     public void UpdateInfo(
         int frameCount,
         int score,
-        RewardFunction reward,
+        float prevBulletDistance,
+        float prevOneUpDistance,
+        float prevBorderDistance,
         int hits,
         int oneUps,
         float cumulativeReward,
@@ -113,17 +126,22 @@ public class GameView : MonoBehaviour
         _infoText.text = "";
         _infoText.text += $"Frame: {frameCount}\n";
         _infoText.text += $"Score: {score}\n";
-        /*
-        _infoText.text += $"Bullet: {reward.PrevBulletDistance:F3}\n";
-        _infoText.text += $"OneUp: {reward.PrevOneUpDistance:F3}\n";
-        _infoText.text += $"Border: {reward.PrevBorderDistance:F3}\n";
-        _infoText.text += $"Hits: {hits}\n";
-        _infoText.text += $"OneUps: {oneUps}\n";
-        _infoText.text += $"Cumulative Reward: {cumulativeReward:F3}\n";
-        _infoText.text += $"Training: {trainingMode}\n";
-        */
-        _playerLifesText.text = $"Lifes: {playerLifes}";
 
+        if (Main.IsTraining)
+        {
+            _infoText.text += $"Bullet: {prevBulletDistance:F3}\n";
+            _infoText.text += $"OneUp: {prevOneUpDistance:F3}\n";
+            _infoText.text += $"Border: {prevBorderDistance:F3}\n";
+            _infoText.text += $"Hits: {hits}\n";
+            _infoText.text += $"OneUps: {oneUps}\n";
+            _infoText.text += $"Cumulative Reward: {cumulativeReward:F3}\n";
+            _infoText.text += $"Training: {trainingMode}\n";
+        }
+        _playerLifesText.text = $"Lifes: {playerLifes}";
+    }
+
+    public void UpdateRewardVisualizer(RewardFunction reward)
+    {
         if (_debugRenderer.gameObject.activeInHierarchy)
         {
             _shaderDebugging.Update(reward);
@@ -168,7 +186,7 @@ public class GameView : MonoBehaviour
             {
                 _item.OnHit -= onHit;
                 _item.OnLeave -= onLeave;
-                if (item.Type != Item.Types.OneUp)
+                if (!Main.IsTraining && item.Type != Item.Types.OneUp)
                 {
                     _hitFxDirector.Play();
                 }

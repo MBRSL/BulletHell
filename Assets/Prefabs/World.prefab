@@ -5427,6 +5427,7 @@ MonoBehaviour:
   _playerLifesText: {fileID: 0}
   _gameOverUi: {fileID: 0}
   _retryButton: {fileID: 0}
+  _background: {fileID: 693826830996873950}
   _debugRenderer: {fileID: 4027889443657553812}
   _playerSpeed: 20
   _itemSpeed: 10

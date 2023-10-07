@@ -43,6 +43,8 @@ public class GameManager
 
         _dodgeAgent = dodgeAgent;
         _dodgeAgent.OnMoving += _ReceiveAiMovement;
+        
+        _items = new List<Item>();
 
         _defaultTrainingMode = Academy.Instance.EnvironmentParameters.GetWithDefault("trainingMode", defaultTrainingMode);
         _InitTrainer(_defaultTrainingMode);
@@ -51,31 +53,32 @@ public class GameManager
 
     public void Update()
     {
-        //if (!_isIntroAnimationEnd || _isGameOver)
-        if (_isGameOver)
+        if (!_isIntroAnimationEnd || _isGameOver)
         {
             return;
         }
+
         _frameCounter++;
         var score = _CalculateScore(_frameCounter);
         var reward = _dodgeAgent.RewardSource;
         _gameView.UpdateInfo(
             _frameCounter,
             score,
-            reward,
+            reward.PrevBulletDistance,
+            reward.PrevOneUpDistance,
+            reward.PrevBorderDistance,
             _hitCounter,
             _oneUpCounter,
             _dodgeAgent.GetCumulativeReward(),
             _trainer.ToString(),
             _playerLifes);
+        _gameView.UpdateRewardVisualizer(reward);
         _UpdateItems(_frameCounter);
         _PlayerControl();
-        //_OldAiControl();
         _AiControl(_currentAiMovement);
 
         if (_trainer.ShouldEndEpisode(_frameCounter))
         {
-            Debug.Log($"End Episode: {_dodgeAgent.GetCumulativeReward()}");
             _dodgeAgent.Pass();
             _dodgeAgent.EndEpisode();
             _Initialize();
@@ -91,10 +94,6 @@ public class GameManager
         _frameCounter = 0;
         _hitCounter = 0;
         _oneUpCounter = 0;
-        if (_items == null)
-        {
-            _items = new List<Item>();
-        }
         for (int i = _items.Count-1; i >= 0; i--)
         {
             _gameView.RecycleItem(_items[i]);
@@ -173,15 +172,7 @@ public class GameManager
     {
         var horizontalInput = Input.GetAxisRaw("Horizontal");
         var verticalInput = Input.GetAxisRaw("Vertical");
-        //_gameView.PlayerTransform.localPosition += new Vector3(horizontalInput, verticalInput, 0).normalized * Time.deltaTime;
         _gameView.PlayerTransform.localPosition += new Vector3(horizontalInput, verticalInput, 0).normalized * Time.fixedDeltaTime * _gameView.PlayerSpeed;
-    }
-
-    private void _OldAiControl()
-    {
-        var offset = _oldDodgeAgent.GetAction().normalized;
-        //_gameView.PlayerTransform.localPosition += offset * Time.deltaTime;
-        _gameView.PlayerTransform.localPosition += offset * Time.fixedDeltaTime * _gameView.PlayerSpeed;
     }
 
     private void _ReceiveAiMovement(Vector2 movement)
@@ -194,49 +185,44 @@ public class GameManager
     {
         var offset = movement.normalized;
         _gameView.PlayerTransform.localPosition += offset * Time.fixedDeltaTime * _gameView.PlayerSpeed;
-        //Debug.Log("After move");
     }
 
     private void _OutOfBound()
-    {
-        /*
-        if (!_isIntroAnimationEnd)
+    {        
+        if (!_isIntroAnimationEnd || _isGameOver)
         {
             return;
         }
-        */
         _dodgeAgent.OutOfBound(_playerLifes);
+
         _playerLifes = 0;
+        _gameView.SetPlayerLifes(_playerLifes);
 
         _GameOver();
     }
 
     private void _GameOver()
     {
-        /*
-        if (!_isIntroAnimationEnd)
-        {
-            return;
-        }
-        _gameView.ShowGameOver();
-        */
         _isGameOver = true;
-        //Academy.Instance.StatsRecorder.Add("RewardBeforeEpisodeEnds", finalReward);
-        Debug.Log($"Game Over: {_dodgeAgent.GetCumulativeReward()}");
         _dodgeAgent.EndEpisode();
 
-        _Initialize();
+        if (Main.IsTraining)
+        {
+            _Initialize();
+        }
+        else
+        {
+            _gameView.ShowGameOver();
+        }
     }
 
     private void _UpdatePlayerLifes(Item item)
     {
-        //if (!_isIntroAnimationEnd || _isGameOver)
-        if (_isGameOver)
+        if (!_isIntroAnimationEnd || _isGameOver)
         {
             return;
         }
         
-        //Debug.Log("Hit");
         if (item.Type == Item.Types.NormalBullet ||
             item.Type == Item.Types.FastBullet ||
             item.Type == Item.Types.TracingBullet)
