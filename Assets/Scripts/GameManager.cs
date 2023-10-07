@@ -58,11 +58,10 @@ public class GameManager
         }
 
         _frameCounter++;
-        var score = _CalculateScore(_frameCounter);
         var reward = _dodgeAgent.RewardSource;
         _gameView.UpdateInfo(
             _frameCounter,
-            score,
+            _CalculateScore(_frameCounter),
             reward.PrevBulletDistance,
             reward.PrevOneUpDistance,
             reward.PrevBorderDistance,
@@ -212,7 +211,7 @@ public class GameManager
         }
         else
         {
-            _gameView.ShowGameOver();
+            _gameView.ShowGameOverFxAndUi();
         }
     }
 

@@ -41,30 +41,16 @@ public class GameView : MonoBehaviour
     #region Public functions
     public float PlayerSpeed { get { return _playerSpeed; } }
     public float ItemSpeed { get { return _itemSpeed; } }
-    public Transform PlayerTransform
-    {
-        get { return _player.transform; }
-    }
-
-    public Bounds PlayerBounds
-    {
-        get { return _player.Bounds; }
-    }
-
-    public Bounds BorderBounds
-    {
-        get { return _playerSpace.bounds; }
-    }
-
-    public Bounds ItemSpawnBounds
-    {
-        get { return _itemSpawnSpace.bounds; }
-    }
+    public Transform PlayerTransform { get { return _player.transform; } }
+    public Bounds PlayerBounds { get { return _player.Bounds; } }
+    public Bounds BorderBounds { get { return _playerSpace.bounds; } }
+    public Bounds ItemSpawnBounds { get { return _itemSpawnSpace.bounds; } }
 
     public void Initialize(Vector3 playerInitPosition, int playerLifes)
     {
         if (Main.IsTraining)
         {
+            // It's originally triggered by director. But since we're not playing director in training mode, we have to trigger it by ourselves
             TriggerIntroAnimationEnd();
             _background.SetActive(false);
         }
@@ -80,11 +66,11 @@ public class GameView : MonoBehaviour
 
         _player.gameObject.SetActive(true);
         _player.transform.localPosition = playerInitPosition;
-
-        _itemSpawner.Initialize();
         _player.OnLeave -= _ChechPlayerInBounds;
         _player.OnLeave += _ChechPlayerInBounds;
         _playerCollider = _player.GetComponent<Collider>();
+
+        _itemSpawner.Initialize();
 
         if (_debugRenderer.gameObject.activeInHierarchy)
         {
@@ -93,12 +79,7 @@ public class GameView : MonoBehaviour
         UpdateInfo(0, 0, 0, 0, 0, 0, 0, 0, "", playerLifes);
     }
 
-    public void TriggerIntroAnimationEnd()
-    {
-        OnIntroAnimationEnd?.Invoke();
-    }
-
-    public void ShowGameOver()
+    public void ShowGameOverFxAndUi()
     {
         _explosionFx.transform.localPosition = _player.transform.localPosition;
         _explosionFx.Play();
@@ -137,7 +118,7 @@ public class GameView : MonoBehaviour
             _infoText.text += $"Cumulative Reward: {cumulativeReward:F3}\n";
             _infoText.text += $"Training: {trainingMode}\n";
         }
-        _playerLifesText.text = $"Lifes: {playerLifes}";
+        SetPlayerLifes(playerLifes);
     }
 
     public void UpdateRewardVisualizer(RewardFunction reward)
@@ -173,7 +154,14 @@ public class GameView : MonoBehaviour
     {
         _itemSpawner.RecycleItem(item);
     }
-
+    
+    /// <summary>
+    /// Called by Animator events from Unity
+    /// </summary>
+    public void TriggerIntroAnimationEnd()
+    {
+        OnIntroAnimationEnd?.Invoke();
+    }
     #endregion
 
     #region Private functions

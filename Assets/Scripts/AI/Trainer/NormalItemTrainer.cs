@@ -6,8 +6,6 @@ public class NormalItemTrainer : Trainer
     #region Private properties
     private Bounds _itemSpawnBounds;
     private Bounds _borderBounds;
-    private Vector3? _playerInitPosition;
-    private List<SpawnItemData> _itemDatas;
     #endregion
 
     #region Public methods
@@ -18,8 +16,6 @@ public class NormalItemTrainer : Trainer
     {
         _itemSpawnBounds = itemSpawnBounds;
         _borderBounds = borderBounds;
-        _playerInitPosition = null;
-        _itemDatas = new List<SpawnItemData>();
     }
 
     public override int GetInitPlayerLifes()
