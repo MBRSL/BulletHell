@@ -1,9 +1,10 @@
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class RewardFunction
 {
-    #region Public
+    #region Public const
     public const float OUT_OF_BOUND_REWARD = -1f;
     public const float BULLET_HIT_REWARD = -0.1f;
     public const float NORMAL_BULLET_THREAT = 1f;
@@ -12,29 +13,46 @@ public class RewardFunction
     public const float ONEUP_HIT_REWARD = 0.2f;
     #endregion
 
+    #region Public properties
     public float PrevBulletDistance;
     public float PrevOneUpDistance;
     public float PrevBorderDistance;
+    #endregion
+
+    #region Private properties
     private Bounds _borderBounds;
     private float _playerColliderRadius;
-    internal IEnumerable<Item> _items;
+    private List<Item> _items;
+    private int _maxNumObservables;
+    #endregion
 
+    #region Public functions
     public RewardFunction(
         Bounds borderBounds,
         float playerColliderRadius,
-        IEnumerable<Item> items
+        List<Item> items,
+        int maxNumObservables
     )
     {
         _borderBounds = borderBounds;
         _playerColliderRadius = playerColliderRadius;
         _items = items;
+        _maxNumObservables = maxNumObservables;
+    }
+
+    public IEnumerable<Item> GetClosestItems(Vector3 position)
+    {
+        return _items
+            .OrderBy(i => (i.View.transform.localPosition-position).magnitude)
+            .Take(_maxNumObservables);
     }
 
     public float GetVariableRewardDiff(Vector3 position)
     {
+        var closestItems = GetClosestItems(position);
         var borderDistance = _GetBorderReward(position);
-        var bulletDistance = _GetBulletReward(position);
-        var oneUpDistance = _GetOneUpReward(position);
+        var bulletDistance = _GetBulletReward(position, closestItems);
+        var oneUpDistance = _GetOneUpReward(position, closestItems);
         float reward = 
             0.3f * OUT_OF_BOUND_REWARD * (borderDistance - PrevBorderDistance) +
             0.3f * BULLET_HIT_REWARD * (bulletDistance - PrevBulletDistance) +
@@ -48,25 +66,28 @@ public class RewardFunction
 
     public float GetVariableReward(Vector3 position)
     {
+        var closestItems = GetClosestItems(position);
         var borderDistance = _GetBorderReward(position);
-        var bulletDistance = _GetBulletReward(position);
-        var oneUpDistance = _GetOneUpReward(position);
+        var bulletDistance = _GetBulletReward(position, closestItems);
+        var oneUpDistance = _GetOneUpReward(position, closestItems);
         float reward = 
             0.3f * OUT_OF_BOUND_REWARD * borderDistance +
             0.3f * BULLET_HIT_REWARD * bulletDistance +
             0.3f * ONEUP_HIT_REWARD * oneUpDistance;
         return reward;
     }
+    #endregion
 
-    private float _GetBulletReward(Vector3 position)
+    #region Private functions
+    private float _GetBulletReward(Vector3 position, IEnumerable<Item> closestItems)
     {
-        if (_items == null)
+        if (closestItems == null)
         {
             return 0;
         }
 
         var sum = 0f;
-        foreach (var item in _items)
+        foreach (var item in closestItems)
         {
             var threatCoef = 0f;
             if (item.Type == Item.Types.NormalBullet)
@@ -107,15 +128,15 @@ public class RewardFunction
         return sum;
     }
 
-    private float _GetOneUpReward(Vector3 position)
+    private float _GetOneUpReward(Vector3 position, IEnumerable<Item> closestItems)
     {
-        if (_items == null)
+        if (closestItems == null)
         {
             return 0;
         }
 
         var sum = 0f;
-        foreach (var item in _items)
+        foreach (var item in closestItems)
         {
             if (item.Type == Item.Types.OneUp)
             {
@@ -127,10 +148,11 @@ public class RewardFunction
         return sum;
     }
 
-    public float _GetBorderReward(Vector3 position)
+    private float _GetBorderReward(Vector3 position)
     {
         var dx = Mathf.Abs(position.x/_borderBounds.extents.x);
         var dy = Mathf.Abs(position.y/_borderBounds.extents.y);
         return Mathf.Max(Mathf.Pow(dx, 10), Mathf.Pow(dy, 10));
     }
+    #endregion
 }

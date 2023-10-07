@@ -5334,9 +5334,13 @@ GameObject:
   m_Component:
   - component: {fileID: 7887467378064429609}
   - component: {fileID: 7409397733242471172}
+  - component: {fileID: 1709168792559170131}
   - component: {fileID: 1403165162308686171}
   - component: {fileID: 1805115090110789146}
-  - component: {fileID: 1709168792559170131}
+  - component: {fileID: 489893206518564334}
+  - component: {fileID: 5398166813028532514}
+  - component: {fileID: 1168992623550402986}
+  - component: {fileID: 7652432617424853212}
   m_Layer: 0
   m_Name: World
   m_TagString: Untagged
@@ -5387,50 +5391,6 @@ PlayableDirector:
   m_ExposedReferences:
     m_References:
     - 410f455b728460b48ab3738baa564377: {fileID: 0}
---- !u!114 &1403165162308686171
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2636199538037183673}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bb5b6b43e0bb99b469f016787ac3eb6a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _gameView: {fileID: 1805115090110789146}
-  _aiAgent: {fileID: 3266566572280584765}
-  _demonstrationRecorder: {fileID: 8672472996131191932}
-  _defaultTrainingMode: 3
-  _isMainEnvironment: 1
---- !u!114 &1805115090110789146
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2636199538037183673}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f6ba635aaa761bc4891f53d6436f69b4, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _introDirector: {fileID: 7409397733242471172}
-  _hitFxDirector: {fileID: 0}
-  _itemSpawner: {fileID: 3299526637384339126}
-  _itemSpawnSpace: {fileID: 6764965041649854093}
-  _player: {fileID: 2395236798037426104}
-  _playerSpace: {fileID: 1787613435890427688}
-  _explosionFx: {fileID: 5273838870784955451}
-  _infoText: {fileID: 0}
-  _playerLifesText: {fileID: 0}
-  _gameOverUi: {fileID: 0}
-  _retryButton: {fileID: 0}
-  _background: {fileID: 693826830996873950}
-  _debugRenderer: {fileID: 4027889443657553812}
-  _playerSpeed: 20
-  _itemSpeed: 10
 --- !u!114 &1709168792559170131
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5461,6 +5421,129 @@ MonoBehaviour:
             m_StringArgument: 
             m_BoolArgument: 0
           m_CallState: 2
+--- !u!114 &1403165162308686171
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2636199538037183673}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bb5b6b43e0bb99b469f016787ac3eb6a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _gameView: {fileID: 1805115090110789146}
+  _aiAgent: {fileID: 1168992623550402986}
+  _demonstrationRecorder: {fileID: 5398166813028532514}
+  _defaultTrainingMode: 3
+  _isMainEnvironment: 1
+--- !u!114 &1805115090110789146
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2636199538037183673}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f6ba635aaa761bc4891f53d6436f69b4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _introDirector: {fileID: 7409397733242471172}
+  _hitFxDirector: {fileID: 0}
+  _itemSpawner: {fileID: 3299526637384339126}
+  _itemSpawnSpace: {fileID: 6764965041649854093}
+  _player: {fileID: 2395236798037426104}
+  _playerSpace: {fileID: 1787613435890427688}
+  _explosionFx: {fileID: 5273838870784955451}
+  _infoText: {fileID: 0}
+  _playerLifesText: {fileID: 0}
+  _gameOverUi: {fileID: 0}
+  _retryButton: {fileID: 0}
+  _background: {fileID: 693826830996873950}
+  _debugRenderer: {fileID: 4027889443657553812}
+  _playerSpeed: 20
+  _itemSpeed: 10
+--- !u!114 &489893206518564334
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2636199538037183673}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5d1c4e0b1822b495aa52bc52839ecb30, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_BrainParameters:
+    VectorObservationSize: 2
+    NumStackedVectorObservations: 1
+    m_ActionSpec:
+      m_NumContinuousActions: 0
+      BranchSizes: 0d000000
+    VectorActionSize: 0d000000
+    VectorActionDescriptions: []
+    VectorActionSpaceType: 0
+    hasUpgradedBrainParametersWithActionSpec: 1
+  m_Model: {fileID: 0}
+  m_InferenceDevice: 1
+  m_BehaviorType: 0
+  m_BehaviorName: DodgeAgent
+  TeamId: 0
+  m_UseChildSensors: 1
+  m_UseChildActuators: 1
+  m_DeterministicInference: 0
+  m_ObservableAttributeHandling: 0
+--- !u!114 &5398166813028532514
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2636199538037183673}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f2902496c0120472b90269f94a0aec7e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  Record: 0
+  NumStepsToRecord: 200000
+  DemonstrationName: increasing
+  DemonstrationDirectory: RecordedDemo-firi
+--- !u!114 &1168992623550402986
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2636199538037183673}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a020974942e0878488e45c09cb504093, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  agentParameters:
+    maxStep: 0
+  hasUpgradedFromAgentParameters: 1
+  MaxStep: 0
+  _bufferSensorComponent: {fileID: 7652432617424853212}
+--- !u!114 &7652432617424853212
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2636199538037183673}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dd8012d5925524537b27131fef517017, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_SensorName: BufferSensor
+  m_ObservableSize: 8
+  m_MaxNumObservables: 20
 --- !u!1 &3219999056764563111
 GameObject:
   m_ObjectHideFlags: 0
@@ -15704,21 +15787,6 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 7a21753b7d898ff43bbbc556c4da689d, type: 3}
       insertIndex: -1
       addedObject: {fileID: 4043373935262242736}
-    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 7a21753b7d898ff43bbbc556c4da689d, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 3137317606351293548}
-    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 7a21753b7d898ff43bbbc556c4da689d, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 3266566572280584765}
-    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 7a21753b7d898ff43bbbc556c4da689d, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 7778695583110893013}
-    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 7a21753b7d898ff43bbbc556c4da689d, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 7174083624658713525}
-    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 7a21753b7d898ff43bbbc556c4da689d, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 8672472996131191932}
     - targetCorrespondingSourceObject: {fileID: -4918867758571224167, guid: 7a21753b7d898ff43bbbc556c4da689d, type: 3}
       insertIndex: -1
       addedObject: {fileID: 4003623581861014752}
@@ -15791,99 +15859,6 @@ SphereCollider:
   serializedVersion: 3
   m_Radius: 0.12
   m_Center: {x: 0, y: 0.05, z: 0}
---- !u!114 &3137317606351293548
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4737401065436824394}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5d1c4e0b1822b495aa52bc52839ecb30, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_BrainParameters:
-    VectorObservationSize: 2
-    NumStackedVectorObservations: 1
-    m_ActionSpec:
-      m_NumContinuousActions: 0
-      BranchSizes: 0d000000
-    VectorActionSize: 0d000000
-    VectorActionDescriptions: []
-    VectorActionSpaceType: 0
-    hasUpgradedBrainParametersWithActionSpec: 1
-  m_Model: {fileID: 0}
-  m_InferenceDevice: 1
-  m_BehaviorType: 0
-  m_BehaviorName: DodgeAgent
-  TeamId: 0
-  m_UseChildSensors: 1
-  m_UseChildActuators: 1
-  m_DeterministicInference: 0
-  m_ObservableAttributeHandling: 0
---- !u!114 &3266566572280584765
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4737401065436824394}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a020974942e0878488e45c09cb504093, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  agentParameters:
-    maxStep: 0
-  hasUpgradedFromAgentParameters: 1
-  MaxStep: 0
-  _bufferSensorComponent: {fileID: 7174083624658713525}
---- !u!114 &7778695583110893013
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4737401065436824394}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3a5c9d521e5ef4759a8246a07d52221e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  DecisionPeriod: 1
-  TakeActionsBetweenDecisions: 1
---- !u!114 &7174083624658713525
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4737401065436824394}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: dd8012d5925524537b27131fef517017, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_SensorName: BufferSensor
-  m_ObservableSize: 8
-  m_MaxNumObservables: 20
---- !u!114 &8672472996131191932
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4737401065436824394}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f2902496c0120472b90269f94a0aec7e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  Record: 0
-  NumStepsToRecord: 200000
-  DemonstrationName: increasing
-  DemonstrationDirectory: RecordedDemo-firi
 --- !u!4 &5401348156314819056 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 7a21753b7d898ff43bbbc556c4da689d, type: 3}

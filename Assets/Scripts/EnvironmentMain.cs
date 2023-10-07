@@ -34,7 +34,7 @@ public class EnvironmentMain : MonoBehaviour
 
     void FixedUpdate()
     {
-        //_gameManager.Update();
+        _gameManager.Update();
     }
     #endregion
 }

@@ -18,6 +18,8 @@ public class GameManager
     private GameView _gameView;
     private DodgeAgent _dodgeAgent;
     private OldDodgeAgent _oldDodgeAgent;
+    private List<Item> _items;
+    private RewardFunction _rewardFunction;
     
     private Trainer _trainer;
     private bool _isIntroAnimationEnd;
@@ -26,8 +28,6 @@ public class GameManager
     private int _hitCounter;
     private int _oneUpCounter;
     private int _playerLifes;
-    private List<Item> _items;
-    private Vector3 _currentAiMovement;
     private float _defaultTrainingMode;
     #endregion
 
@@ -42,11 +42,19 @@ public class GameManager
         _gameView.OnIntroAnimationEnd += _IntroAnimationEnded;
 
         _dodgeAgent = dodgeAgent;
-        _dodgeAgent.OnMoving += _ReceiveAiMovement;
-        
+        _dodgeAgent.OnMoving += _MovePlayer;
+
         _items = new List<Item>();
 
+        _rewardFunction = new RewardFunction(
+            _gameView.BorderBounds,
+            _gameView.PlayerBounds.extents.magnitude,
+            _items,
+            _dodgeAgent.MaxNumObservables
+        );
+
         _defaultTrainingMode = Academy.Instance.EnvironmentParameters.GetWithDefault("trainingMode", defaultTrainingMode);
+
         _Initialize();
     }
 
@@ -58,22 +66,20 @@ public class GameManager
         }
 
         _frameCounter++;
-        var reward = _dodgeAgent.RewardSource;
+        _dodgeAgent.RequestDecision();
         _gameView.UpdateInfo(
             _frameCounter,
             _CalculateScore(_frameCounter),
-            reward.PrevBulletDistance,
-            reward.PrevOneUpDistance,
-            reward.PrevBorderDistance,
+            _rewardFunction.PrevBulletDistance,
+            _rewardFunction.PrevOneUpDistance,
+            _rewardFunction.PrevBorderDistance,
             _hitCounter,
             _oneUpCounter,
             _dodgeAgent.GetCumulativeReward(),
             _trainer.ToString(),
             _playerLifes);
-        _gameView.UpdateRewardVisualizer(reward);
+        _gameView.UpdateRewardVisualizer(_rewardFunction);
         _UpdateItems(_frameCounter);
-        _PlayerControl();
-        _AiControl(_currentAiMovement);
 
         if (_trainer.ShouldEndEpisode(_frameCounter))
         {
@@ -114,8 +120,7 @@ public class GameManager
             _oldDodgeAgent,
             _gameView.PlayerTransform,
             _gameView.BorderBounds,
-            _gameView.PlayerBounds.extents.magnitude,
-            _items
+            _rewardFunction
         );
     }
 
@@ -167,23 +172,9 @@ public class GameManager
         _gameView.UpdateTracingBullet(_items);
     }
 
-    private void _PlayerControl()
+    private void _MovePlayer(Vector2 movement)
     {
-        var horizontalInput = Input.GetAxisRaw("Horizontal");
-        var verticalInput = Input.GetAxisRaw("Vertical");
-        _gameView.PlayerTransform.localPosition += new Vector3(horizontalInput, verticalInput, 0).normalized * Time.fixedDeltaTime * _gameView.PlayerSpeed;
-    }
-
-    private void _ReceiveAiMovement(Vector2 movement)
-    {
-        _currentAiMovement = movement;
-        Update();
-    }
-
-    private void _AiControl(Vector3 movement)
-    {
-        var offset = movement.normalized;
-        _gameView.PlayerTransform.localPosition += offset * Time.fixedDeltaTime * _gameView.PlayerSpeed;
+        _gameView.MovePlayer(movement);
     }
 
     private void _OutOfBound()

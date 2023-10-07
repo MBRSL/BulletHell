@@ -1,6 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using Unity.MLAgents;
 using Unity.MLAgents.Actuators;
 using Unity.MLAgents.Sensors;
@@ -11,7 +9,6 @@ public class DodgeAgent : Agent
     #region Public
     public const float SURVIVAL_REWARD = 0.002f;
     public event Action<Vector2> OnMoving;
-    public RewardFunction RewardSource;
     #endregion
 
     #region Editor data
@@ -22,27 +19,23 @@ public class DodgeAgent : Agent
     private OldDodgeAgent _oldDodgeAgent;
     private Bounds _borderBounds;
     private Transform _playerTransform;
-    private List<Item> _items;
+    private RewardFunction _rewardFunction;
     #endregion
 
     #region Public method
+    public int MaxNumObservables { get { return _bufferSensorComponent.MaxNumObservables; } }
+
     public void InjectData(
         OldDodgeAgent oldDodgeAgent,
         Transform playerTransform,
         Bounds borderBounds,
-        float playerColliderRadius,
-        List<Item> items)
+        RewardFunction rewardFunction
+    )
     {
         _oldDodgeAgent = oldDodgeAgent;
         _playerTransform = playerTransform;
         _borderBounds = borderBounds;
-        _items = items;
-
-        RewardSource = new RewardFunction(
-            _borderBounds,
-            playerColliderRadius,
-            null
-        );
+        _rewardFunction = rewardFunction;
     }
 
     public void Hit()
@@ -73,11 +66,12 @@ public class DodgeAgent : Agent
 
     public override void Heuristic(in ActionBuffers actionsOut)
     {
-        /*
-        var output = actionsOut.DiscreteActions;
-        output[0] = Movement.NotMoving;
-        */
-        var direction = Movement.ToClockDirection(_oldDodgeAgent.GetAction());
+        var horizontalInput = Input.GetAxisRaw("Horizontal");
+        var verticalInput = Input.GetAxisRaw("Vertical");
+        var input = horizontalInput != 0 || verticalInput != 0 ?
+            new Vector3(horizontalInput, verticalInput, 0) :
+            _oldDodgeAgent.GetAction();
+        var direction = Movement.ToClockDirection(input);
         var output = actionsOut.DiscreteActions;
         output[0] = direction;
     }
@@ -95,10 +89,8 @@ public class DodgeAgent : Agent
         );
         sensor.AddObservation(normalizedPlayerPosition);
 
-        RewardSource._items = _items
-            .OrderBy(i => (i.View.transform.localPosition-_playerTransform.localPosition).magnitude)
-            .Take(_bufferSensorComponent.MaxNumObservables);
-        foreach (var item in RewardSource._items)
+        var closestItems = _rewardFunction.GetClosestItems(_playerTransform.localPosition);
+        foreach (var item in closestItems)
         {
             var normalizedItemPosition = new Vector2(
                 (item.View.transform.localPosition.x-_playerTransform.localPosition.x)/_borderBounds.extents.x,
@@ -135,7 +127,7 @@ public class DodgeAgent : Agent
     public override void OnActionReceived(ActionBuffers actions)
     {
         OnMoving?.Invoke(Movement.ClockDirection[actions.DiscreteActions[0]]);
-        AddReward(RewardSource.GetVariableRewardDiff(_playerTransform.localPosition));
+        AddReward(_rewardFunction.GetVariableRewardDiff(_playerTransform.localPosition));
         AddReward(SURVIVAL_REWARD);
     }
     #endregion

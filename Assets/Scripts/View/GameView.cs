@@ -79,6 +79,11 @@ public class GameView : MonoBehaviour
         UpdateInfo(0, 0, 0, 0, 0, 0, 0, 0, "", playerLifes);
     }
 
+    public void MovePlayer(Vector3 offset)
+    {
+        _player.transform.localPosition += offset.normalized * Time.fixedDeltaTime * _playerSpeed;
+    }
+
     public void ShowGameOverFxAndUi()
     {
         _explosionFx.transform.localPosition = _player.transform.localPosition;
@@ -129,6 +134,10 @@ public class GameView : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Adjust tracing bullets' velocity and make it toward player
+    /// </summary>
+    /// <param name="items"></param>
     public void UpdateTracingBullet(List<Item> items)
     {
         foreach (var item in items)
