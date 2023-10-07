@@ -37,3 +37,5 @@ Thumbs.db
 # Mac Finder Cache
 .DS_Store
 # These should be ignored by default global gitignore, but from time to time we got these from packages or other sources
+RecordedDemo*
+Executable*
