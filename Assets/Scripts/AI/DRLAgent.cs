@@ -4,6 +4,9 @@ using Unity.MLAgents.Actuators;
 using Unity.MLAgents.Sensors;
 using UnityEngine;
 
+/// <summary>
+/// Deep Reinforcement Learning Agent
+/// </summary>
 public class DRLAgent : Agent
 {
     #region Public

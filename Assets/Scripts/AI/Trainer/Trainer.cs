@@ -1,6 +1,9 @@
-using System;
 using UnityEngine;
 
+/// <summary>
+/// This class is used to setup different training environments.
+/// Like no bullets, few bullets, lots of bullets, etc.
+/// </summary>
 public abstract class Trainer
 {
     #region public class

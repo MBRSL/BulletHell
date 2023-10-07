@@ -1,5 +1,8 @@
 using UnityEngine;
 
+/// <summary>
+/// Pass Unity events to pure C# classes
+/// </summary>
 public class ItemView : MonoBehaviour
 {
     #region Public properties

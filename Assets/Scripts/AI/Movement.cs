@@ -2,6 +2,10 @@ using System;
 using UnityEngine;
 using UnityEngine.Rendering;
 
+/// <summary>
+/// Use this class to transform continous movements to discrete movements
+/// This speeds up training process and lower the difficulty
+/// </summary>
 public class Movement
 {
     public readonly static Vector2[] ClockDirection = new Vector2[]

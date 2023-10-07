@@ -1,6 +1,10 @@
 ﻿using System;
 using UnityEngine;
 
+/// <summary>
+/// Use this class to visualize reward function.
+/// It's not optimized so it's slow.
+/// </summary>
 public class ShaderDebugging : IDisposable
 {
 	public const int WIDTH = 50;

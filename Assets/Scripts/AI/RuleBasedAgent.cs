@@ -1,6 +1,19 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// Tradition agents.
+/// This class include 4 smaller agents which represent different policies.
+/// 1. Gullutony
+///   - Tries to get Oneup so that player can survive longer.
+/// 2. HomeSick
+///   - Prefer to stay in the center. Because player get less choices of movement in the corner.
+/// 3. BorderRebel
+///   - Player dies when it touch border line. Keep away from it.
+/// 4. CloseQuarterDodge
+///   - Move left/right when facing bullets in close range.
+///   - If it's even closer then move backward a little bit so that there is enough time to evade by moving left/right later.
+/// </summary>
 public class RuleBasedAgent
 {
     #region Public properties

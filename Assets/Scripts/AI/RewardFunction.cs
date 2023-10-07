@@ -2,6 +2,9 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
+/// <summary>
+/// Compute rewards for DRL agents. This class tries to make it like a potential function.
+/// </summary>
 public class RewardFunction
 {
     #region Public const
