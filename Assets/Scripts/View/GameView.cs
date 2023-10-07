@@ -5,6 +5,9 @@ using UnityEngine;
 using UnityEngine.Playables;
 using UnityEngine.UI;
 
+/// <summary>
+/// This class handles view related events, including UI, collision, animations
+/// </summary>
 public class GameView : MonoBehaviour
 {
     #region Public delegates
@@ -48,7 +51,7 @@ public class GameView : MonoBehaviour
 
     public void Initialize(Vector3 playerInitPosition, int playerLifes)
     {
-        if (Main.IsTraining)
+        if (Environment.IsTraining)
         {
             // It's originally triggered by director. But since we're not playing director in training mode, we have to trigger it by ourselves
             TriggerIntroAnimationEnd();
@@ -113,7 +116,7 @@ public class GameView : MonoBehaviour
         _infoText.text += $"Frame: {frameCount}\n";
         _infoText.text += $"Score: {score}\n";
 
-        if (Main.IsTraining)
+        if (Environment.IsTraining)
         {
             _infoText.text += $"Bullet: {prevBulletDistance:F3}\n";
             _infoText.text += $"OneUp: {prevOneUpDistance:F3}\n";
@@ -183,7 +186,7 @@ public class GameView : MonoBehaviour
             {
                 _item.OnHit -= onHit;
                 _item.OnLeave -= onLeave;
-                if (!Main.IsTraining && item.Type != Item.Types.OneUp)
+                if (!Environment.IsTraining && item.Type != Item.Types.OneUp)
                 {
                     _hitFxDirector.Play();
                 }

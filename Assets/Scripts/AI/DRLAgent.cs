@@ -4,7 +4,7 @@ using Unity.MLAgents.Actuators;
 using Unity.MLAgents.Sensors;
 using UnityEngine;
 
-public class DodgeAgent : Agent
+public class DRLAgent : Agent
 {
     #region Public
     public const float SURVIVAL_REWARD = 0.002f;
@@ -16,7 +16,7 @@ public class DodgeAgent : Agent
     #endregion
 
     #region Private properties
-    private OldDodgeAgent _oldDodgeAgent;
+    private RuleBasedAgent _ruleBasedAgent;
     private Bounds _borderBounds;
     private Transform _playerTransform;
     private RewardFunction _rewardFunction;
@@ -26,13 +26,13 @@ public class DodgeAgent : Agent
     public int MaxNumObservables { get { return _bufferSensorComponent.MaxNumObservables; } }
 
     public void InjectData(
-        OldDodgeAgent oldDodgeAgent,
+        RuleBasedAgent ruleBasedAgent,
         Transform playerTransform,
         Bounds borderBounds,
         RewardFunction rewardFunction
     )
     {
-        _oldDodgeAgent = oldDodgeAgent;
+        _ruleBasedAgent = ruleBasedAgent;
         _playerTransform = playerTransform;
         _borderBounds = borderBounds;
         _rewardFunction = rewardFunction;
@@ -70,7 +70,7 @@ public class DodgeAgent : Agent
         var verticalInput = Input.GetAxisRaw("Vertical");
         var input = horizontalInput != 0 || verticalInput != 0 ?
             new Vector3(horizontalInput, verticalInput, 0) :
-            _oldDodgeAgent.GetAction();
+            _ruleBasedAgent.GetAction();
         var direction = Movement.ToClockDirection(input);
         var output = actionsOut.DiscreteActions;
         output[0] = direction;

@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class OldDodgeAgent
+public class RuleBasedAgent
 {
     #region Public properties
     public const float BORDER_REBEL_THRESHOLD = 0.2f;
@@ -25,7 +25,7 @@ public class OldDodgeAgent
     #endregion
 
     #region Public methods
-    public OldDodgeAgent(
+    public RuleBasedAgent(
         Transform playerTransform,
         Bounds playerBounds,
         Bounds borderBounds,

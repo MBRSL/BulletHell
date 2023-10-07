@@ -2,6 +2,9 @@ using System.Collections.Generic;
 using Unity.MLAgents;
 using UnityEngine;
 
+/// <summary>
+/// This class controls the main loop of game, including game logic, scores, spawing items.
+/// </summary>
 public class GameManager
 {
     #region Public properties    
@@ -16,8 +19,8 @@ public class GameManager
 
     #region Private properties
     private GameView _gameView;
-    private DodgeAgent _dodgeAgent;
-    private OldDodgeAgent _oldDodgeAgent;
+    private DRLAgent _drlAgent;
+    private RuleBasedAgent _ruleBasedAgent;
     private List<Item> _items;
     private RewardFunction _rewardFunction;
     
@@ -32,7 +35,7 @@ public class GameManager
     #endregion
 
     #region Public methods
-    public GameManager(GameView gameView, DodgeAgent dodgeAgent, float defaultTrainingMode)
+    public GameManager(GameView gameView, DRLAgent drlAgent, float defaultTrainingMode)
     {
         _gameView = gameView;
         _gameView.OnItemHit += _UpdatePlayerLifes;
@@ -41,8 +44,8 @@ public class GameManager
         _gameView.OnClickRetry += _Initialize;
         _gameView.OnIntroAnimationEnd += _IntroAnimationEnded;
 
-        _dodgeAgent = dodgeAgent;
-        _dodgeAgent.OnMoving += _MovePlayer;
+        _drlAgent = drlAgent;
+        _drlAgent.OnMoving += _MovePlayer;
 
         _items = new List<Item>();
 
@@ -50,7 +53,7 @@ public class GameManager
             _gameView.BorderBounds,
             _gameView.PlayerBounds.extents.magnitude,
             _items,
-            _dodgeAgent.MaxNumObservables
+            _drlAgent.MaxNumObservables
         );
 
         _defaultTrainingMode = Academy.Instance.EnvironmentParameters.GetWithDefault("trainingMode", defaultTrainingMode);
@@ -66,7 +69,7 @@ public class GameManager
         }
 
         _frameCounter++;
-        _dodgeAgent.RequestDecision();
+        _drlAgent.RequestDecision();
         _gameView.UpdateInfo(
             _frameCounter,
             _CalculateScore(_frameCounter),
@@ -75,7 +78,7 @@ public class GameManager
             _rewardFunction.PrevBorderDistance,
             _hitCounter,
             _oneUpCounter,
-            _dodgeAgent.GetCumulativeReward(),
+            _drlAgent.GetCumulativeReward(),
             _trainer.ToString(),
             _playerLifes);
         _gameView.UpdateRewardVisualizer(_rewardFunction);
@@ -83,8 +86,8 @@ public class GameManager
 
         if (_trainer.ShouldEndEpisode(_frameCounter))
         {
-            _dodgeAgent.Pass();
-            _dodgeAgent.EndEpisode();
+            _drlAgent.Pass();
+            _drlAgent.EndEpisode();
             _Initialize();
         }
     }
@@ -107,7 +110,7 @@ public class GameManager
         _InitTrainer(_defaultTrainingMode);
         _playerLifes = _trainer.GetInitPlayerLifes();
         _gameView.Initialize(_trainer.GetInitPlayerPosition(), _playerLifes);
-        _oldDodgeAgent = new OldDodgeAgent
+        _ruleBasedAgent = new RuleBasedAgent
         (
             _gameView.PlayerTransform,
             _gameView.PlayerBounds,
@@ -115,9 +118,9 @@ public class GameManager
             _items
         );
 
-        _dodgeAgent.InjectData
+        _drlAgent.InjectData
         (
-            _oldDodgeAgent,
+            _ruleBasedAgent,
             _gameView.PlayerTransform,
             _gameView.BorderBounds,
             _rewardFunction
@@ -138,7 +141,7 @@ public class GameManager
         }
         else if (mode <= 1)
         {
-            _trainer = new SingleItemTrainer(_gameView.ItemSpawnBounds);
+            _trainer = new SimpleItemTrainer(_gameView.ItemSpawnBounds);
         }
         else if (mode <= 2)
         {
@@ -153,7 +156,7 @@ public class GameManager
     private void _IntroAnimationEnded()
     {
         _isIntroAnimationEnd = true;
-        _dodgeAgent.OnEpisodeBegin();
+        _drlAgent.OnEpisodeBegin();
     }
 
     private int _CalculateScore(int frameCount)
@@ -183,7 +186,7 @@ public class GameManager
         {
             return;
         }
-        _dodgeAgent.OutOfBound(_playerLifes);
+        _drlAgent.OutOfBound(_playerLifes);
 
         _playerLifes = 0;
         _gameView.SetPlayerLifes(_playerLifes);
@@ -194,9 +197,9 @@ public class GameManager
     private void _GameOver()
     {
         _isGameOver = true;
-        _dodgeAgent.EndEpisode();
+        _drlAgent.EndEpisode();
 
-        if (Main.IsTraining)
+        if (Environment.IsTraining)
         {
             _Initialize();
         }
@@ -219,13 +222,13 @@ public class GameManager
         {
             _playerLifes--;
             _hitCounter++;
-            _dodgeAgent.Hit();
+            _drlAgent.Hit();
         }
         else if (item.Type == Item.Types.OneUp)
         {
             _playerLifes++;
             _oneUpCounter++;
-            _dodgeAgent.GetOneUp();
+            _drlAgent.GetOneUp();
         }
         _gameView.SetPlayerLifes(_playerLifes);
         _RemoveItem(item);

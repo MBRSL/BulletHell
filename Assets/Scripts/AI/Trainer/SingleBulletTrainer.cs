@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class SingleItemTrainer : Trainer
+public class SimpleItemTrainer : Trainer
 {
     #region Public const
     public const int EPISODE_LENGTH = 500;
@@ -11,7 +11,7 @@ public class SingleItemTrainer : Trainer
     #endregion
     
     #region Public methods
-    public SingleItemTrainer(
+    public SimpleItemTrainer(
         Bounds itemSpawnBounds
     )
     {
