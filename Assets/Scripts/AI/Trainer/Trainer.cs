@@ -27,7 +27,7 @@ public abstract class Trainer
     #region Protected methods
     protected Item.Types _GetGameRandomItemType()
     {
-        float typeRnd = UnityEngine.Random.Range(0f, 1f);
+        float typeRnd = Random.Range(0f, 1f);
         if (typeRnd < 0.1f)
         {
             return Item.Types.TracingBullet;
@@ -45,33 +45,5 @@ public abstract class Trainer
             return Item.Types.OneUp;
         }
     }
-/*
-    protected Item.Types _GetItemTypeButOneUpMore()
-    {
-        float typeRnd = UnityEngine.Random.Range(0f, 1f);
-        if (typeRnd < 0.166f)
-        {
-            return Item.Types.TracingBullet;
-        }
-        else if (typeRnd < 0.333f)
-        {
-            return Item.Types.FastBullet;
-        }
-        else if (typeRnd < 0.5f)
-        {
-            return Item.Types.NormalBullet;
-        }
-        else
-        {
-            return Item.Types.OneUp;
-        }
-    }
-
-    protected Item.Types _GetUniformRandomItemType(System.Random random)
-    {
-        Array values = Enum.GetValues(typeof(Item.Types));
-        return (Item.Types)values.GetValue(random.Next(values.Length));
-    }
-*/
     #endregion
 }
