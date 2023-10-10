@@ -1,4 +1,5 @@
 using Unity.MLAgents.Demonstrations;
+using Unity.MLAgents.Policies;
 using Unity.MLAgents.Sensors;
 using UnityEngine;
 
@@ -12,6 +13,7 @@ public class Main : MonoBehaviour
     [SerializeField] private GameView _gameView;
     // DRL stands for "Deep Reinforce Learning"
     [SerializeField] private DRLAgent _drlAgent;
+    [SerializeField] private BehaviorParameters _behaviorParameters;
     [SerializeField] private DemonstrationRecorder _demonstrationRecorder;
     [SerializeField] private BufferSensorComponent _bufferSensorComponent;
     [SerializeField] private float _defaultTrainingMode;
@@ -40,6 +42,7 @@ public class Main : MonoBehaviour
             _gameView,
             _drlAgent,
             _defaultTrainingMode,
+            _behaviorParameters.Model != null,
             _bufferSensorComponent.MaxNumObservables
         );
     }

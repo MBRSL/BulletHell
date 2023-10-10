@@ -33,11 +33,18 @@ public class GameManager
     private int _oneUpCounter;
     private int _playerLifes;
     private float _defaultTrainingMode;
+    private bool _useDrlAgent;
     private int _maxNumObservables;
     #endregion
 
     #region Public methods
-    public GameManager(GameView gameView, DRLAgent drlAgent, float defaultTrainingMode, int maxNumObservables)
+    public GameManager(
+        GameView gameView,
+        DRLAgent drlAgent,
+        float defaultTrainingMode,
+        bool useDrlAgent,
+        int maxNumObservables
+    )
     {
         _gameView = gameView;
         _gameView.OnItemHit += _UpdatePlayerLifes;
@@ -69,6 +76,7 @@ public class GameManager
         );
 
         _defaultTrainingMode = Academy.Instance.EnvironmentParameters.GetWithDefault("trainingMode", defaultTrainingMode);
+        _useDrlAgent = useDrlAgent;
         _maxNumObservables = maxNumObservables;
         
         _Initialize();
@@ -181,7 +189,7 @@ public class GameManager
         }
         else
         {
-            if (Environment.IsTraining)
+            if (Environment.IsTraining || _useDrlAgent)
             {
                 // We need to feed the current items for agents to make decision
                 // But unfortunately we cannot pass it to Unity's CollectObservations() so we have to inject here
