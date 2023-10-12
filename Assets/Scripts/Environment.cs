@@ -5,6 +5,7 @@ public class Environment : MonoBehaviour
     void Start()
     {
         Application.targetFrameRate = 60;
+        Screen.SetResolution(1920, 1080, FullScreenMode.Windowed);
     }
 
     /// <summary>
