@@ -189,7 +189,7 @@ public class GameManager
         }
         else
         {
-            if (Environment.IsTraining || _useDrlAgent)
+            if (GlobalSettings.IsTraining || _useDrlAgent)
             {
                 // We need to feed the current items for agents to make decision
                 // But unfortunately we cannot pass it to Unity's CollectObservations() so we have to inject here
@@ -240,7 +240,7 @@ public class GameManager
         _isGameOver = true;
         _drlAgent.EndEpisode();
 
-        if (Environment.IsTraining)
+        if (GlobalSettings.IsTraining)
         {
             _Initialize();
         }

@@ -51,7 +51,7 @@ public class GameView : MonoBehaviour
 
     public void Initialize(Vector3 playerInitPosition, int playerLifes)
     {
-        if (Environment.IsTraining)
+        if (GlobalSettings.IsTraining)
         {
             // It's originally triggered by director. But since we're not playing director in training mode, we have to trigger it by ourselves
             TriggerIntroAnimationEnd();
@@ -116,7 +116,7 @@ public class GameView : MonoBehaviour
         _infoText.text += $"Frame: {frameCount}\n";
         _infoText.text += $"Score: {score}\n";
 
-        if (Environment.IsTraining)
+        if (GlobalSettings.IsTraining)
         {
             _infoText.text += $"Bullet: {prevBulletDistance:F3}\n";
             _infoText.text += $"OneUp: {prevOneUpDistance:F3}\n";
@@ -186,7 +186,7 @@ public class GameView : MonoBehaviour
             {
                 _item.OnHit -= onHit;
                 _item.OnLeave -= onLeave;
-                if (!Environment.IsTraining && item.Type != Item.Types.OneUp)
+                if (!GlobalSettings.IsTraining && item.Type != Item.Types.OneUp)
                 {
                     _hitFxDirector.Play();
                 }
