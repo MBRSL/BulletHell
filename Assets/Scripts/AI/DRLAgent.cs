@@ -94,6 +94,10 @@ public class DRLAgent : Agent
         );
         sensor.AddObservation(normalizedPlayerPosition);
 
+        if (_closestItems == null)
+        {
+            return;
+        }
         foreach (var item in _closestItems)
         {
             var normalizedItemPosition = new Vector2(
