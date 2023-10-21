@@ -65,6 +65,12 @@ public class DRLAgent : Agent
     {
         Academy.Instance.StatsRecorder.Add("Pass", 1, StatAggregationMethod.Sum);
     }
+
+    public void LogWhenEpisodeEnds(int totalHits, int totalOneUps, int frames)
+    {
+        Academy.Instance.StatsRecorder.Add("Episode/Hits per frame", (float)totalHits/frames, StatAggregationMethod.Average);
+        Academy.Instance.StatsRecorder.Add("Episode/OneUps per frame", (float)totalOneUps/frames, StatAggregationMethod.Average);
+    }
     #endregion
 
     #region Unity functions

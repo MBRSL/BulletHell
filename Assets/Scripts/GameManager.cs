@@ -238,6 +238,7 @@ public class GameManager
     private void _GameOver()
     {
         _isGameOver = true;
+        _drlAgent.LogWhenEpisodeEnds(_hitCounter, _oneUpCounter, _frameCounter);
         _drlAgent.EndEpisode();
 
         if (GlobalSettings.IsTraining)
