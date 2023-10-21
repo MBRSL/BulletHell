@@ -207,9 +207,9 @@ public class GameManager
 
     private void _UpdateItems(int frameCount)
     {
-        if (_trainer.ShouldSpawnItem(frameCount))
+        var spawnItemDatas = _trainer.GetSpawnItemData(frameCount);
+        foreach (var spawnItemData in spawnItemDatas)
         {
-            var spawnItemData = _trainer.GetSpawnItemData();
             var item = _gameView.SpawnItem(spawnItemData.Type, spawnItemData.InitPosition, spawnItemData.TargetPosition);
             _items.Add(item);
         }

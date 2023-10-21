@@ -1,4 +1,6 @@
+using System;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 public class BorderTrainer : Trainer
 {
@@ -44,14 +46,9 @@ public class BorderTrainer : Trainer
         return new Vector3(_borderBounds.extents.x * coefX, _borderBounds.extents.y * coefY, 0);
     }
 
-    public override SpawnItemData GetSpawnItemData()
+    public override System.Collections.Generic.IEnumerable<SpawnItemData> GetSpawnItemData(int frameCount)
     {
-        return null;
-    }
-
-    public override bool ShouldSpawnItem(int frameCount)
-    {
-        return false;
+        return Array.Empty<SpawnItemData>();
     }
 
     public override bool ShouldEndEpisode(int frameCount)

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 public class SimpleItemTrainer : Trainer
@@ -8,6 +9,7 @@ public class SimpleItemTrainer : Trainer
 
     #region Private properties
     private Bounds _itemSpawnBounds;
+    private List<SpawnItemData> _spawnItemData;
     #endregion
     
     #region Public methods
@@ -16,6 +18,7 @@ public class SimpleItemTrainer : Trainer
     )
     {
         _itemSpawnBounds = itemSpawnBounds;
+        _spawnItemData = new List<SpawnItemData>();
     }
 
     public override int GetInitPlayerLifes()
@@ -28,20 +31,23 @@ public class SimpleItemTrainer : Trainer
         return Vector3.zero;
     }
     
-    public override SpawnItemData GetSpawnItemData()
+    public override IEnumerable<SpawnItemData> GetSpawnItemData(int frameCount)
     {
-        var theta = Random.Range(0f, 2*Mathf.PI);
-        return new SpawnItemData
+        _spawnItemData.Clear();
+        if (frameCount == 1)
         {
-            Type = _GetGameRandomItemType(),
-            InitPosition = _itemSpawnBounds.extents.magnitude * new Vector3(Mathf.Cos(theta), Mathf.Sin(theta), 0),
-            TargetPosition = GetInitPlayerPosition()
-        };
-    }
-
-    public override bool ShouldSpawnItem(int frameCount)
-    {
-        return frameCount % EPISODE_LENGTH == 1 || frameCount % EPISODE_LENGTH == 2;
+            for (int i = 0; i < 2; i++)
+            {
+                var theta = Random.Range(0f, 2*Mathf.PI);
+                _spawnItemData.Add(new SpawnItemData
+                {
+                    Type = _GetGameRandomItemType(),
+                    InitPosition = _itemSpawnBounds.extents.magnitude * new Vector3(Mathf.Cos(theta), Mathf.Sin(theta), 0),
+                    TargetPosition = GetInitPlayerPosition()
+                });
+            }
+        }
+        return _spawnItemData;
     }
 
     public override bool ShouldEndEpisode(int frameCount)

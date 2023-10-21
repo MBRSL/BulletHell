@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
@@ -19,8 +20,7 @@ public abstract class Trainer
     #region public methods
     public abstract int GetInitPlayerLifes();
     public abstract Vector3 GetInitPlayerPosition();
-    public abstract SpawnItemData GetSpawnItemData();
-    public abstract bool ShouldSpawnItem(int frameCount);
+    public abstract IEnumerable<SpawnItemData> GetSpawnItemData(int frameCount);
     public abstract bool ShouldEndEpisode(int frameCount);
     #endregion
 
@@ -36,7 +36,7 @@ public abstract class Trainer
         {
             return Item.Types.FastBullet;
         }
-        else if (typeRnd < 0.99f)
+        else if (typeRnd < 0.985f)
         {
             return Item.Types.NormalBullet;
         }

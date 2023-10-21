@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 public class NormalItemTrainer : Trainer
@@ -6,6 +7,7 @@ public class NormalItemTrainer : Trainer
     private Bounds _itemSpawnBounds;
     private Bounds _borderBounds;
     private Transform _playerTransform;
+    private List<SpawnItemData> _spawnItemData;
     #endregion
 
     #region Public methods
@@ -18,6 +20,7 @@ public class NormalItemTrainer : Trainer
         _itemSpawnBounds = itemSpawnBounds;
         _borderBounds = borderBounds;
         _playerTransform = playerTransform;
+        _spawnItemData = new List<SpawnItemData>();
     }
 
     public override int GetInitPlayerLifes()
@@ -30,30 +33,31 @@ public class NormalItemTrainer : Trainer
         return Vector3.zero;
     }
 
-    public override SpawnItemData GetSpawnItemData()
+    public override IEnumerable<SpawnItemData> GetSpawnItemData(int frameCount)
     {
-        var type = _GetGameRandomItemType();
-        var theta = Random.Range(0f, 2*Mathf.PI);
-        var targetPosition = _playerTransform.localPosition;
-        if (type != Item.Types.TracingBullet)
-        {
-            targetPosition = new Vector3(
-                _borderBounds.extents.x * Random.Range(-1f, 1f),
-                _borderBounds.extents.y * Random.Range(-1f, 1f),
-                0
-            );
-        }
-        return new SpawnItemData
-        {
-            Type = type,
-            InitPosition = _itemSpawnBounds.extents.magnitude * new Vector3(Mathf.Cos(theta), Mathf.Sin(theta), 0),
-            TargetPosition = targetPosition
-        };
-    }
+        _spawnItemData.Clear();
 
-    public override bool ShouldSpawnItem(int frameCount)
-    {
-        return frameCount % 30 == 0;
+        if (frameCount % 30 == 0)
+        {
+            var type = _GetGameRandomItemType();
+            var theta = Random.Range(0f, 2*Mathf.PI);
+            var targetPosition = _playerTransform.localPosition;
+            if (type != Item.Types.TracingBullet)
+            {
+                targetPosition = new Vector3(
+                    _borderBounds.extents.x * Random.Range(-1f, 1f),
+                    _borderBounds.extents.y * Random.Range(-1f, 1f),
+                    0
+                );
+            }
+            _spawnItemData.Add(new SpawnItemData
+            {
+                Type = type,
+                InitPosition = _itemSpawnBounds.extents.magnitude * new Vector3(Mathf.Cos(theta), Mathf.Sin(theta), 0),
+                TargetPosition = targetPosition
+            });
+        }
+        return _spawnItemData;
     }
 
     public override bool ShouldEndEpisode(int frameCount)
